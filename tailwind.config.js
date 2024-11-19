@@ -13,8 +13,18 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                dmSerif: ['DM Serif Display', 'serif'],
+            },
+            colors: {
+                lightgray: '#EDECEA',
+                medgray: '#7E7F7F',
+                darkgray: '#302F2D',
+                orange: '#FF904C',
+                lightyellow: '#FFDF58',
+                warmyellow: '#FEBD58',
             },
         },
     },
     plugins: [],
 };
+
