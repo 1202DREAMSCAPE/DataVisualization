@@ -2,8 +2,9 @@
     <div class="flex items-center">
     <a href="/" class="flex-shrink-0">
             <img src="{{ asset('images/Logo.png') }}" alt="Logo" class="w-13 h-12 object-cover">
-        </a>        
-        <ul class="hidden md:flex space-x-8 ml-6 text-gray-600 font-medium">
+        </a>     
+        <!--href="{{ url('/') }}"-->   
+        <ul class="hidden md:flex space-x-8 ml-6 text-black font-medium">
             <li><a href="#" class="hover:text-black">Home</a></li>
             <li><a href="#" class="hover:text-black">About Us</a></li>
             <li><a href="#" class="hover:text-black">Features</a></li>
@@ -21,7 +22,15 @@
         </div>
     </div>
     <div class="flex items-center space-x-4">
-        <button class="bg-transparent border border-black text-black px-6 py-1 rounded-lg hover:bg-black hover:text-white transition">Sign Up</button>
-        <button class="  border-black bg-yellow-500 text-black px-6 py-1 rounded-lg hover:bg-yellow-600 transition">Log In</button>
-    </div>
+        <!-- Log In Button -->
+    <button class="bg-yellow-500 border border-black text-black px-6 py-1 rounded-lg hover:bg-yellow-400 hover:text-black transition font-bold">
+        Log In
+    </button>
+    <!-- Sign Up Button -->
+    <button class="bg-lightgray border border-black text-black px-6 py-1 rounded-lg hover:bg-medgray hover:text-black hover:border-black transition font-bold">
+        Sign Up
+    </button>
+    
+</div>
+
 </nav>
