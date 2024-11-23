@@ -13,38 +13,48 @@ class FileUpload extends Component
 
     public $file;
     public $filename;
-    public $headers;
-    public $previewData;
-    public $cleaningData; // Holds data for the cleaning process
-    public $isCleaning = false;
+    public $headers = [];
+    public $previewData = [];
+    public $originalData = [];
+    public $headerRowIndex = 1;
 
     public function updatedFile()
     {
         $this->validate([
-            'file' => 'required|mimes:csv,xlsx|max:10240', // Max 10MB
+            'file' => 'required|mimes:csv,xlsx|max:10240',
         ]);
 
         $this->filename = $this->file->getClientOriginalName();
         $path = $this->file->store('temp');
 
-        $this->loadPreviewData($path);
+        $this->loadExcelData($path);
     }
 
-    private function loadPreviewData($path)
+    private function loadExcelData($path)
     {
         $fullPath = Storage::path($path);
         $spreadsheet = IOFactory::load($fullPath);
         $sheet = $spreadsheet->getActiveSheet();
         $data = $sheet->toArray(null, true, true, true);
 
-        $this->headers = array_shift($data); // Extract headers from the first row
-        $this->previewData = array_slice($data, 0, 20); // Limit preview to first 20 rows
-        $this->cleaningData = $data; // Store full data for cleaning
+        $this->originalData = $data;
+        $this->headers = array_shift($data); // Default headers
+        $this->previewData = $data;
     }
 
-    public function proceedToCleaning()
+    public function setHeaderRow($rowIndex)
     {
-        $this->isCleaning = true;
+        $this->headerRowIndex = $rowIndex;
+        $this->headers = $this->originalData[$rowIndex - 1];
+        $this->previewData = array_slice($this->originalData, $rowIndex);
+    }
+
+    public function deleteColumn($columnKey)
+    {
+        foreach ($this->previewData as &$row) {
+            unset($row[$columnKey]);
+        }
+        unset($this->headers[$columnKey]);
     }
 
     public function render()
