@@ -1,14 +1,15 @@
 <nav class="sticky top-0 z-50 bg-lightgray px-8 py-3 flex justify-between items-center shadow-md font-dmSerif">
     <div class="flex items-center">
-    <a href="/" class="flex-shrink-0">
+    <a href="/" class="">
             <img src="{{ asset('images/Logo.png') }}" alt="Logo" class="w-13 h-12 object-cover">
         </a>     
         <!--href="{{ url('/') }}"-->   
-        <ul class="hidden md:flex space-x-8 ml-6 text-black font-medium">
-            <li><a href="#" class="hover:text-black">Home</a></li>
-            <li><a href="#" class="hover:text-black">About Us</a></li>
-            <li><a href="#" class="hover:text-black">Features</a></li>
-        </ul>
+        <!-- Navigation Links for large screens -->
+        <nav class="hidden md:flex space-x-8 ml-8">
+                    <a href="/" class="text-black no-underline font-dmSerif text-lg mt-2">Home</a>
+                    <a href="/" class="text-black no-underline font-dmSerif text-lg mt-2">About us</a>
+                    <a href="/" class="text-black no-underline font-dmSerif text-lg mt-2">Features</a>
+                </nav>
         <!-- Mobile Menu -->
         <div class="md:hidden" x-data="{ open: false }">
             <button @click="open = !open" class="text-black text-xl">

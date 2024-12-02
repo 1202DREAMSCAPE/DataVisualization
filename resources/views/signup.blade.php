@@ -18,12 +18,13 @@
     <!-- Single Root Element -->
     <div class="min-h-screen flex flex-col bg-gradient-to-b from-orange-300 to-yellow-200">
         <!-- Header with Alpine.js for responsive menu -->
-        <header x-data="{ isOpen: false }" class="bg-darkgray py-4 px-6 flex flex-row items-center justify-between">
+        <header x-data="{ isOpen: false }"  x-cloak class="bg-darkgray py-3 px-8 flex flex-row items-center justify-between">
             <!-- Left Side: Logo and Navigation Links / Hamburger -->
             <div class="flex items-center">
-                <a href="/" class="ml-4">
-                    <img src="{{ asset('images/Logo.png') }}" alt="DataBar Logo" class="h-12">
+                <a href="/" class="">
+                    <img src="{{ asset('images/Logo.png') }}" alt="DataBar Logo" class=" h-12">
                 </a>
+                <!-- Navigation Links for large screens -->
                 <nav class="hidden md:flex space-x-8 ml-8">
                     <a href="/" class="text-white no-underline font-dmSerif text-lg mt-2">Home</a>
                     <a href="/" class="text-white no-underline font-dmSerif text-lg mt-2">About us</a>
@@ -36,14 +37,14 @@
                 <!-- Log In Button -->
                 <a href="/login">
                     <button
-                        class="bg-yellow-500 border border-black text-white px-4 py-1 rounded-lg hover:bg-yellow-400 hover:text-black transition font-bold text-sm md:text-base">
+                        class="bg-yellow-500 border border-black text-black px-4 py-1 rounded-lg hover:bg-yellow-400 hover:text-black transition font-bold font-dmSerif text-sm md:text-base">
                         Log In
                     </button>
                 </a>
                 <!-- Sign Up Button -->
                 <a href="/register">
                     <button
-                        class="bg-darkgray border border-white text-white px-4 py-1 rounded-lg hover:bg-medgray hover:text-black hover:border-black transition font-bold text-sm md:text-base">
+                        class="bg-darkgray border border-white text-white px-4 py-1 rounded-lg hover:bg-medgray hover:text-black hover:border-black transition font-dmSerif font-bold text-sm md:text-base">
                         Sign Up
                     </button>
                 </a>
