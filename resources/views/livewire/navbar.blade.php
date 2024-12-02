@@ -22,14 +22,19 @@
         </div>
     </div>
     <div class="flex items-center space-x-4">
-        <!-- Log In Button -->
-    <button class="bg-yellow-500 border border-black text-black px-6 py-1 rounded-lg hover:bg-yellow-400 hover:text-black transition font-bold">
-        Log In
-    </button>
+    <!-- Log In Button -->
+    <a href="{{ route('login') }}">
+        <button class="bg-yellow-500 border border-black text-black px-6 py-1 rounded-lg hover:bg-yellow-400 hover:text-black transition font-bold">
+            Log In
+        </button>
+    </a>
     <!-- Sign Up Button -->
-    <button class="bg-lightgray border border-black text-black px-6 py-1 rounded-lg hover:bg-medgray hover:text-black hover:border-black transition font-bold">
-        Sign Up
-    </button>
+    <a href="{{ route('register') }}">
+        <button class="bg-lightgray border border-black text-black px-6 py-1 rounded-lg hover:bg-medgray hover:text-black hover:border-black transition font-bold">
+            Sign Up
+        </button>
+    </a>
+
     
 </div>
 
