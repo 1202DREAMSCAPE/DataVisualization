@@ -18,6 +18,9 @@ class FileUpload extends Component
     public $originalData = [];
     public $headerRowIndex = 1;
 
+    // Add a new property for generated data
+    public $generatedData = [];
+
     public function updatedFile()
     {
         $this->validate([
@@ -55,6 +58,14 @@ class FileUpload extends Component
             unset($row[$columnKey]);
         }
         unset($this->headers[$columnKey]);
+    }
+
+    // New method to handle generated data
+    public function loadGeneratedData($headers, $data)
+    {
+        $this->headers = $headers;
+        $this->previewData = $data;
+        $this->generatedData = $data;
     }
 
     public function render()

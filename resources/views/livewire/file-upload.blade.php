@@ -1,5 +1,26 @@
 <div class="p-6 bg-white rounded-lg shadow">
-    @if (!$filename)
+<!-- Generate Text Form -->
+<form method="POST" action="/huggingface/generate">
+        @csrf
+        <div class="mb-4">
+            <label for="prompt" class="block text-sm font-medium text-gray-700">Enter your prompt</label>
+            <input
+                type="text"
+                name="prompt"
+                id="prompt"
+                placeholder="e.g., Generate a dataset with Name, Age, and Salary"
+                class="w-full border border-gray-300 rounded px-4 py-2"
+                required
+            />
+        </div>
+        <div class="text-center mb-4">
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Generate Text
+            </button>
+        </div>
+    </form>
+
+    @if (!$filename && empty($generatedData))
         <!-- File Upload Section -->
         <div
             class="border-2 border-dashed border-gray-400 rounded-lg p-6 flex items-center justify-center cursor-pointer"
@@ -16,33 +37,12 @@
         <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
         @enderror
     @else
-        <!-- Data Cleaning Section -->
+        <!-- Data Preview Section -->
         <div class="border border-gray-300 rounded-lg p-4">
-            <h2 class="text-lg font-bold mb-4">Data Cleaning</h2>
+            <h2 class="text-lg font-bold mb-4">Data Preview</h2>
 
-            <!-- Header Row Selection -->
-            <div class="mb-4">
-                <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Select Header Row
-                </label>
-                <select
-                    wire:change="setHeaderRow($event.target.value)"
-                    class="w-full border border-gray-300 rounded px-4 py-2"
-                >
-                    @foreach ($originalData as $index => $row)
-                        <option value="{{ $index + 1 }}"
-                            {{ $index + 1 == $headerRowIndex ? 'selected' : '' }}
-                        >
-                            Row {{ $index + 1 }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Excel Preview -->
             <div class="overflow-y-auto max-h-96 border border-gray-300 rounded-lg p-4 bg-gray-50">
                 <table class="w-full text-sm text-left">
-                    <!-- Headers -->
                     <thead class="bg-gray-100">
                         <tr class="text-gray-700 font-semibold">
                             @foreach ($headers as $key => $header)
@@ -59,7 +59,6 @@
                             @endforeach
                         </tr>
                     </thead>
-                    <!-- Data Rows -->
                     <tbody>
                         @foreach ($previewData as $row)
                             <tr class="border-b border-gray-200">
@@ -71,16 +70,6 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-
-        <!-- Upload New File Button -->
-        <div class="mt-6 text-center">
-            <button
-                wire:click="$set('filename', null)"
-                class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-lg border border-gray-300"
-            >
-                Upload a New File
-            </button>
         </div>
     @endif
 </div>
