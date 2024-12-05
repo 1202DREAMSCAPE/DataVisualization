@@ -14,18 +14,6 @@
 </head>
 <body class="bg-gray-100 flex">
 
-    <!-- Sidebar -->
-    <aside class="w-48 bg-gray-900 text-gray-100 h-screen">
-        <div class="p-6 text-center text-xl font-bold">DataBar</div>
-        <nav>
-            <a href="#" class="block px-6 py-3 hover:bg-gray-800">Dashboard</a>
-            <a href="#" class="block px-6 py-3 bg-gray-800">My Project</a>
-            <a href="#" class="block px-6 py-3 hover:bg-gray-800">Saved</a>
-            <a href="#" class="block px-6 py-3 hover:bg-gray-800">Draft</a>
-            <a href="#" class="block px-6 py-3 hover:bg-gray-800">Trash</a>
-        </nav>
-    </aside>
-
     <!-- Main Content -->
     <div class="flex-1">
         <!-- Navbar -->
