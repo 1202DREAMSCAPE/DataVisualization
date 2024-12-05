@@ -12,19 +12,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
-<body class="bg-gray-100 flex">
+<body class="flex h-screen bg-pink-200 bg-cover bg-center" >
 
+<!--style="background-image: url('{{ asset('images/gifbg.gif') }}')"-->
     <!-- Main Content -->
     <div class="flex-1">
         <!-- Navbar -->
-        <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
-            <h1 class="text-lg font-bold">Project Directory</h1>
-            <div>
-                <button class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">+ New Project</button>
-                <img src="https://via.placeholder.com/40" alt="User Avatar" class="inline-block rounded-full ml-4">
-            </div>
-        </header>
-
+        <livewire:navbar />
         <!-- Main Content Area -->
         <main class="p-6">
                 <!-- Call Livewire FileUpload Component -->

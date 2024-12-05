@@ -47,7 +47,7 @@ class FileUpload extends Component
         $this->headerRowIndex = $rowIndex;
         $this->headers = $this->originalData[$rowIndex - 1];
         $this->previewData = array_slice($this->originalData, $rowIndex);
-    }
+    } 
 
     public function deleteColumn($columnKey)
     {

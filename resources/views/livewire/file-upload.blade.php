@@ -16,68 +16,117 @@
         <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
         @enderror
     @else
-        <!-- Data Cleaning Section -->
+        <!-- File Preview Section -->
         <div class="border border-gray-300 rounded-lg p-4">
-            <h2 class="text-lg font-bold mb-4">Data Cleaning</h2>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold">
+                    Previewing File: <span class="text-blue-500">{{ $filename }}</span>
+                </h2>
+                <div x-data="{ open: false }">
+                    <!-- Start Visualizing Button -->
+                    <button
+                        @click="open = true"
+                        class="bg-gradient-to-r from-red-400 via-yellow-400 to-blue-500 text-white px-4 py-2 rounded-lg shadow font-semibold animate-rainbow"
+                    >
+                        Start Visualizing
+                    </button>
 
-            <!-- Header Row Selection -->
-            <div class="mb-4">
-                <label class="block mb-2 text-sm font-medium text-gray-700">
-                    Select Header Row
-                </label>
-                <select
-                    wire:change="setHeaderRow($event.target.value)"
-                    class="w-full border border-gray-300 rounded px-4 py-2"
-                >
-                    @foreach ($originalData as $index => $row)
-                        <option value="{{ $index + 1 }}"
-                            {{ $index + 1 == $headerRowIndex ? 'selected' : '' }}
-                        >
-                            Row {{ $index + 1 }}
-                        </option>
-                    @endforeach
-                </select>
+                    <!-- Modal -->
+                    <div
+                        x-show="open"
+                        class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4"
+                        style="display: none;"
+                    >
+                        <div class="bg-white rounded-lg p-6 max-w-xl w-full relative">
+                            <!-- Close Button -->
+                            <button @click="open = false" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+                                ✖
+                            </button>
+                            <h2 class="text-xl font-bold text-center mb-4">What chart do you want?</h2>
+
+                            <!-- Chart Options -->
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                                <div class="flex flex-col items-center">
+                                    <img src="/path-to-bar-chart.jpg" alt="Bar Chart" class="w-24 h-24 rounded shadow" />
+                                    <p class="mt-2 font-semibold text-sm md:text-base text-center">Bar Chart</p>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <img src="/path-to-pie-chart.jpg" alt="Pie Chart" class="w-24 h-24 rounded shadow" />
+                                    <p class="mt-2 font-semibold text-sm md:text-base text-center">Pie Chart</p>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <img src="/path-to-word-cloud.jpg" alt="Word Cloud" class="w-24 h-24 rounded shadow" />
+                                    <p class="mt-2 font-semibold text-sm md:text-base text-center">Word Cloud</p>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <img src="/path-to-gauge-chart.jpg" alt="Gauge Chart" class="w-24 h-24 rounded shadow" />
+                                    <p class="mt-2 font-semibold text-sm md:text-base text-center">Gauge Chart</p>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <img src="/path-to-radar-chart.jpg" alt="Radar Chart" class="w-24 h-24 rounded shadow" />
+                                    <p class="mt-2 font-semibold text-sm md:text-base text-center">Radar Chart</p>
+                                </div>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="text-right mt-6">
+                                <button
+                                    @click="open = false"
+                                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg"
+                                >
+                                    Proceed!
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Excel Preview -->
-            <div class="overflow-y-auto max-h-96 border border-gray-300 rounded-lg p-4 bg-gray-50">
-                <table class="w-full text-sm text-left">
-                    <!-- Headers -->
-                    <thead class="bg-gray-100">
-                        <tr class="text-gray-700 font-semibold">
-                            @foreach ($headers as $key => $header)
-                                <th class="py-2 px-4">
-                                    {{ $header }}
-                                    <button
-                                        wire:click="deleteColumn('{{ $key }}')"
-                                        class="ml-2 text-red-500 hover:text-red-700"
-                                        title="Delete Column"
-                                    >
-                                        ✖
-                                    </button>
-                                </th>
-                            @endforeach
-                        </tr>
-                    </thead>
-                    <!-- Data Rows -->
-                    <tbody>
-                        @foreach ($previewData as $row)
-                            <tr class="border-b border-gray-200">
-                                @foreach ($row as $cell)
-                                    <td class="py-2 px-4">{{ $cell }}</td>
+            @if (!empty($headers) && !empty($previewData))
+                <!-- Table Preview -->
+                <div class="overflow-y-auto max-h-96 border border-gray-300 rounded-lg p-4 bg-gray-50">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="py-2 px-4 text-gray-700 font-semibold text-center">#</th>
+                                @foreach ($headers as $header)
+                                    <th class="py-2 px-4 text-gray-700 font-semibold">{{ $header }}</th>
                                 @endforeach
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            @foreach ($previewData as $index => $row)
+                                <tr>
+                                    <td class="py-2 px-4 text-gray-600 text-center">{{ $loop->iteration }}</td>
+                                    @foreach ($row as $cell)
+                                        <td class="py-2 px-4 text-gray-600">{{ $cell }}</td>
+                                    @endforeach
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <!-- Fallback if no data is available -->
+                <div class="overflow-y-auto max-h-96 border border-gray-300 rounded-lg p-4 bg-gray-50">
+                    <p class="text-gray-700 text-sm text-center">
+                        No preview data available. Please check the uploaded file.
+                    </p>
+                </div>
+            @endif
         </div>
 
-        <!-- Upload New File Button -->
-        <div class="mt-6 text-center">
+        <!-- Buttons Section -->
+        <div class="mt-6 flex justify-center space-x-4">
+            <button
+                wire:click="startDataCleaning"
+                class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow"
+            >
+                Start Data Cleaning
+            </button>
             <button
                 wire:click="$set('filename', null)"
-                class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-lg border border-gray-300"
+                class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-lg border border-gray-300 shadow"
             >
                 Upload a New File
             </button>
