@@ -39,6 +39,9 @@ class LoginForm extends Form
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        // Redirect to project page on success
+        redirect()->route('project');
     }
 
     /**

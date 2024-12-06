@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 namespace App\Livewire;
 
@@ -17,6 +17,17 @@ class FileUpload extends Component
     public $previewData = [];
     public $originalData = [];
     public $headerRowIndex = 1;
+    public $isChartSelectorOpen = false;
+
+    public function openChartSelector()
+    {
+        $this->isChartSelectorOpen = true;
+    }
+
+    public function closeChartSelector()
+    {
+        $this->isChartSelectorOpen = false;
+    }
 
     public function updatedFile()
     {
@@ -38,7 +49,7 @@ class FileUpload extends Component
         $data = $sheet->toArray(null, true, true, true);
 
         $this->originalData = $data;
-        $this->headers = array_shift($data); // Default headers
+        $this->headers = array_shift($data);
         $this->previewData = $data;
     }
 
@@ -47,7 +58,7 @@ class FileUpload extends Component
         $this->headerRowIndex = $rowIndex;
         $this->headers = $this->originalData[$rowIndex - 1];
         $this->previewData = array_slice($this->originalData, $rowIndex);
-    } 
+    }
 
     public function deleteColumn($columnKey)
     {
@@ -56,6 +67,20 @@ class FileUpload extends Component
         }
         unset($this->headers[$columnKey]);
     }
+
+    public function startDataCleaning()
+{
+    // Example: Log to confirm the method is triggered
+    logger('Start Data Cleaning button clicked');
+
+    // Perform data cleaning (e.g., remove rows with empty cells)
+    $this->previewData = array_filter($this->previewData, function ($row) {
+        return count(array_filter($row)) > 0; // Remove rows with all empty cells
+    });
+
+    session()->flash('message', 'Data cleaning completed!');
+}
+
 
     public function render()
     {

@@ -13,8 +13,18 @@
         </div>
 
         @error('file')
-        <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
+        <p class="text-red-500 text-sm mt-2 text-center">{{ $message }}</p>
         @enderror
+
+        <!-- Instructions Section -->
+        <div class="mt-4 text-center">
+            <h3 class="text-gray-700 font-semibold text-lg">How to Use:</h3>
+            <ol class="text-sm text-gray-600 mt-2 space-y-2">
+                <li>1. Click on the upload area to upload.</li>
+                <li>2. Only CSV or XLSX files are supported for preview and visualization.</li>
+                <li>3. After uploading, preview your data and start the visualization process.</li>
+            </ol>
+        </div>
     @else
         <!-- File Preview Section -->
         <div class="border border-gray-300 rounded-lg p-4">
@@ -22,70 +32,19 @@
                 <h2 class="text-lg font-bold">
                     Previewing File: <span class="text-blue-500">{{ $filename }}</span>
                 </h2>
-                <div x-data="{ open: false }">
-                    <!-- Start Visualizing Button -->
-                    <button
-                        @click="open = true"
-                        class="bg-gradient-to-r from-red-400 via-yellow-400 to-blue-500 text-white px-4 py-2 rounded-lg shadow font-semibold animate-rainbow"
-                    >
-                        Start Visualizing
-                    </button>
-
-                    <!-- Modal -->
-                    <div
-                        x-show="open"
-                        class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4"
-                        style="display: none;"
-                    >
-                        <div class="bg-white rounded-lg p-6 max-w-xl w-full relative">
-                            <!-- Close Button -->
-                            <button @click="open = false" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
-                                ✖
-                            </button>
-                            <h2 class="text-xl font-bold text-center mb-4">What chart do you want?</h2>
-
-                            <!-- Chart Options -->
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                                <div class="flex flex-col items-center">
-                                    <img src="/path-to-bar-chart.jpg" alt="Bar Chart" class="w-24 h-24 rounded shadow" />
-                                    <p class="mt-2 font-semibold text-sm md:text-base text-center">Bar Chart</p>
-                                </div>
-                                <div class="flex flex-col items-center">
-                                    <img src="/path-to-pie-chart.jpg" alt="Pie Chart" class="w-24 h-24 rounded shadow" />
-                                    <p class="mt-2 font-semibold text-sm md:text-base text-center">Pie Chart</p>
-                                </div>
-                                <div class="flex flex-col items-center">
-                                    <img src="/path-to-word-cloud.jpg" alt="Word Cloud" class="w-24 h-24 rounded shadow" />
-                                    <p class="mt-2 font-semibold text-sm md:text-base text-center">Word Cloud</p>
-                                </div>
-                                <div class="flex flex-col items-center">
-                                    <img src="/path-to-gauge-chart.jpg" alt="Gauge Chart" class="w-24 h-24 rounded shadow" />
-                                    <p class="mt-2 font-semibold text-sm md:text-base text-center">Gauge Chart</p>
-                                </div>
-                                <div class="flex flex-col items-center">
-                                    <img src="/path-to-radar-chart.jpg" alt="Radar Chart" class="w-24 h-24 rounded shadow" />
-                                    <p class="mt-2 font-semibold text-sm md:text-base text-center">Radar Chart</p>
-                                </div>
-                            </div>
-
-                            <!-- Save Button -->
-                            <div class="text-right mt-6">
-                                <button
-                                    @click="open = false"
-                                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg"
-                                >
-                                    Proceed!
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Start Visualizing Button -->
+                <button
+                    wire:click="openChartSelector"
+                    class="bg-gradient-to-r from-red-400 via-yellow-400 to-blue-500 text-white px-4 py-2 rounded-lg shadow font-semibold animate-rainbow"
+                >
+                    Start Visualizing
+                </button>
             </div>
 
             @if (!empty($headers) && !empty($previewData))
-                <!-- Table Preview -->
-                <div class="overflow-y-auto max-h-96 border border-gray-300 rounded-lg p-4 bg-gray-50">
-                    <table class="w-full text-sm text-left">
+                <!-- Table Preview with Horizontal and Vertical Scroll -->
+                <div class="overflow-x-auto overflow-y-auto max-h-96 border border-gray-300 rounded-lg p-4 bg-gray-50">
+                    <table class="min-w-full text-sm text-left">
                         <thead class="bg-gray-100">
                             <tr>
                                 <th class="py-2 px-4 text-gray-700 font-semibold text-center">#</th>
@@ -131,5 +90,9 @@
                 Upload a New File
             </button>
         </div>
+    @endif
+
+    @if ($isChartSelectorOpen)
+        <livewire:chart-selector :headers="$headers" :previewData="$previewData" />
     @endif
 </div>

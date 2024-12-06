@@ -12,7 +12,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
-<body class="flex h-screen bg-pink-200 bg-cover bg-center" >
+<body class="flex h-screen bg-cover bg-center" style="background-image: url('{{ asset('images/blobgif.gif') }}')" >
 
 <!--style="background-image: url('{{ asset('images/gifbg.gif') }}')"-->
     <!-- Main Content -->
@@ -24,7 +24,9 @@
                 <!-- Call Livewire FileUpload Component -->
                 <livewire:file-upload />
         </main>
+        
     </div>
+    
 
     @livewireScripts
 </body>
