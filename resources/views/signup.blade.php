@@ -19,85 +19,124 @@
     <div 
         class="min-h-screen flex flex-col bg-cover bg-center" 
         style="background-image: url('{{ asset('images/authgif.gif') }}');"
-    >            <!-- Header with Alpine.js for responsive menu -->
-       <livewire:navbar />
+    >            
+        <!-- Header with Alpine.js for responsive menu -->
+        <livewire:navbar />
 
         <!-- Main Content -->
         <div class="flex items-center justify-center flex-grow p-6">
             <div class="bg-white rounded-[40px] shadow-lg max-w-md w-full py-6 px-4 xl:py-12 xl:p-24">
-                <h1 class="text-xs sm:text-sm  text-darkgray mb-1  text-left">Get Started</h1>
-                <h2 class="text-2xl sm:text-3xl text-darkgray mb-1 font-serif font-bold text-left">Sign Up for <span
-                        class="font-bold italic">Free.</span></h2>
-                <p class="text-left text-xs sm:text-sm text-darkgray mb-2 ">
-                    Already have an account? <a href="{{ route('login') }}"
-                        class="text-green-600 font-bold hover:underline italic">Log in</a>
+                <h1 class="text-xs sm:text-sm text-darkgray mb-1 text-left">Get Started</h1>
+                <h2 class="text-2xl sm:text-3xl text-darkgray mb-1 font-serif font-bold text-left">
+                    Sign Up for <span class="font-bold italic">Free.</span>
+                </h2>
+                <p class="text-left text-xs sm:text-sm text-darkgray mb-2">
+                    Already have an account? 
+                    <a href="{{ route('login') }}" class="text-green-600 font-bold hover:underline italic">Log in</a>
                 </p>
 
                 <form wire:submit.prevent="register">
                     <!-- Name -->
                     <div class="mb-2">
-                        <input wire:model="form.name" id="name" type="text" placeholder="Name"
+                        <input wire:model="name" id="name" type="text" placeholder="Name"
                             class="w-full border-[1px] border-darkgray rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring focus:ring-orange-300" />
-                        @error('form.name')
-                            <span class="text-red-500 text-xs">{{ $message }}</span>
-                        @enderror
+                        @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
 
                     <!-- Email -->
                     <div class="mb-2">
-                        <input wire:model="form.email" id="email" type="email"
-                            placeholder="Email Address (e.g., user@example.com)"
+                        <input wire:model="email" id="email" type="email" placeholder="Email Address"
                             class="w-full border-[1px] border-darkgray rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring focus:ring-orange-300" />
-                        @error('form.email')
-                            <span class="text-red-500 text-xs">{{ $message }}</span>
-                        @enderror
+                        @error('email') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
 
                     <!-- Username -->
                     <div class="mb-2">
-                        <input wire:model="form.username" id="username" type="text" placeholder="Username"
+                        <input wire:model="username" id="username" type="text" placeholder="Username"
                             class="w-full border-[1px] border-darkgray rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring focus:ring-orange-300" />
-                        @error('form.username')
-                            <span class="text-red-500 text-xs">{{ $message }}</span>
-                        @enderror
+                        @error('username') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
 
                     <!-- Password and Confirm Password -->
-                    <div class="mb-3 grid grid-cols-2 gap-3">
-                        <input wire:model="form.password" id="password" type="password" placeholder="Password"
-                            class="border-[1px] border-darkgray rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring focus:ring-orange-300" />
-                        <input wire:model="form.password_confirmation" id="password_confirmation" type="password"
-                            placeholder="Confirm Password"
-                            class="border-[1px] border-darkgray rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring focus:ring-orange-300" />
-                        @error('form.password')
-                            <span class="text-red-500 text-xs col-span-2">{{ $message }}</span>
-                        @enderror
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <!-- Password -->
+                        <div>
+                            <input wire:model="password" id="password" type="password" placeholder="Password"
+                                class="w-full border-[1px] border-darkgray rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring focus:ring-orange-300" />
+                            @error('password') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div>
+                            <input wire:model="password_confirmation" id="password_confirmation" type="password"
+                                placeholder="Confirm Password"
+                                class="w-full border-[1px] border-darkgray rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring focus:ring-orange-300" />
+                        </div>
                     </div>
 
-                    <!-- Data Privacy Notice -->
-                    <div class="flex items-center text-xs sm:text-xs text-darkgray mb-3 text-opacity-80">
-                        <input wire:model="form.acceptPrivacy" id="acceptPrivacy" type="checkbox"
+                    <!-- Data Privacy Agreement -->
+                    <div class="flex items-center mb-3">
+                        <input wire:model="acceptPrivacy" id="acceptPrivacy" type="checkbox" disabled
                             class="form-checkbox h-4 w-4 text-orange-600 mr-2" />
-                        <label for="acceptPrivacy" class="flex-1">
-                            By signing up, you confirm in <a href="#" class="text-orange-500 hover:underline">data
-                                privacy</a> secures your
-                            account by ensuring only authorized access to your data.
+                        <label for="acceptPrivacy" class="text-sm text-gray-700">
+                            By signing up, you confirm in <a href="#" class="text-orange-500 hover:underline" onclick="showModal()">data
+                            privacy</a> secures your account by ensuring only authorized access to your data.
                         </label>
                     </div>
+                    @error('acceptPrivacy') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
 
                     <!-- Sign Up Button -->
                     <div class="flex justify-center">
                         <button type="submit"
-                            class="bg-warmyellow duration-150 font-bold border-[1px] border-darkgray text-darkgray w-1/2 py-2 rounded-full hover:bg-lightyellow hover:font-bold text-xs sm:text-sm">
-                            Enter DataBar
+                            class="bg-orange-500 text-white w-full py-2 rounded-lg hover:bg-orange-600">
+                            Sign Up
                         </button>
                     </div>
                 </form>
+
+                <!-- Data Privacy Modal -->
+                <div id="dataPrivacyModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                    <div class="bg-white rounded-lg w-4/5 md:w-1/3 p-6">
+                        <h2 class="text-lg font-bold mb-4">Data Privacy Agreement</h2>
+                        <p class="text-sm text-gray-700 mb-6">
+                            Your account is secured by ensuring only authorized access to your data. By continuing, you agree to our Data Privacy Policy.
+                        </p>
+                        <div class="flex justify-end">
+                            <button onclick="hideModal()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 mr-2">
+                                Close
+                            </button>
+                            <button onclick="agreeToPrivacy()" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600">
+                                Agree
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     @livewireScripts
+
+    <!-- Modal Script -->
+    <script>
+        function showModal() {
+            document.getElementById('dataPrivacyModal').classList.remove('hidden');
+        }
+
+        function hideModal() {
+            document.getElementById('dataPrivacyModal').classList.add('hidden');
+        }
+
+        function agreeToPrivacy() {
+            hideModal();
+            const checkbox = document.getElementById('acceptPrivacy');
+            checkbox.disabled = false;
+            checkbox.checked = true;
+
+            // Disable further manual interaction
+            checkbox.setAttribute('readonly', 'true');
+        }
+    </script>
 </body>
 
 </html>
