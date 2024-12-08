@@ -33,12 +33,11 @@
                     Previewing File: <span class="text-blue-500">{{ $filename }}</span>
                 </h2>
                 <!-- Start Visualizing Button -->
-                <button
-                    wire:click="openChartSelector"
-                    class="bg-gradient-to-r from-red-400 via-yellow-400 to-blue-500 text-white px-4 py-2 rounded-lg shadow font-semibold animate-rainbow"
-                >
-                    Start Visualizing
-                </button>
+                <button wire:click="openChartSelector"
+                    class="bg-gradient-to-r from-red-400 via-yellow-400 to-blue-500 text-white px-4 py-2 rounded-lg shadow font-semibold">
+                Start Visualizing
+            </button>
+
             </div>
 
             @if (!empty($headers) && !empty($previewData))
@@ -92,6 +91,7 @@
         </div>
     @endif
 
+    <!-- Chart Selector -->
     @if ($isChartSelectorOpen)
         <livewire:chart-selector :headers="$headers" :previewData="$previewData" />
     @endif

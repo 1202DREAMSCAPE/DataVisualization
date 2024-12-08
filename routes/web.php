@@ -3,28 +3,32 @@
 use Illuminate\Support\Facades\Route;
 use App\Livewire\ChartCustomizer;
 use App\Livewire\DataCleaning;
+use App\Http\Controllers\ChartController;
+use App\Http\Controllers\ChartCustomizeController;
 
+// Landing Page
+Route::view('/', 'landing-page')->name('landing-page');
 
+// Project Page
+Route::view('/project', 'project')->name('project');
 
-Route::view('/', 'landing-page');
-
-Route::view('/project', 'project');
-
-Route::view('dashboard', 'dashboard')
+// Dashboard
+Route::view('/dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-
- Route::get('/data-cleaning', DataCleaning::class)->name('data-cleaning');
-    
-
-Route::view('profile', 'profile')
+// Profile Page
+Route::view('/profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');
 
-// Route for chart customization
-use App\Http\Controllers\ChartController;
+// Data Cleaning Route
+Route::get('/data-cleaning', DataCleaning::class)
+    ->name('data-cleaning');
 
-Route::get('/chart/customize/{type}', [ChartController::class, 'customizeChart'])->name('chart.customize');
+// Chart Customization
+Route::get('/chart/customize/{type}', [ChartCustomizeController::class, 'customize'])
+    ->name('chart.customize');
 
+// Include Authentication Routes
 require __DIR__.'/auth.php';

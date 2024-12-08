@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataBar - Data Visualization Platform</title>
+    <title>VizOra - Data Visualization Platform</title>
     @vite('resources/css/app.css')
     @livewireStyles
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -23,6 +23,8 @@
         <main class="p-6">
                 <!-- Call Livewire FileUpload Component -->
                 <livewire:file-upload />
+                <livewire:chart-selector />
+
         </main>
         
     </div>

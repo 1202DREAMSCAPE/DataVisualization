@@ -32,7 +32,7 @@
                 </h2>
                 <p class="text-left text-xs sm:text-sm text-darkgray mb-2">
                     Already have an account? 
-                    <a href="{{ route('login') }}" class="text-green-600 font-bold hover:underline italic">Log in</a>
+                    <a href="{{ route('login') }}" class="text-black hover:text-green-600 font-bold hover:underline italic">Log in</a>
                 </p>
 
                 <form wire:submit.prevent="register">
@@ -88,29 +88,42 @@
                     <!-- Sign Up Button -->
                     <div class="flex justify-center">
                         <button type="submit"
-                            class="bg-orange-500 text-white w-full py-2 rounded-lg hover:bg-orange-600">
-                            Sign Up
+                        class="bg-warmyellow font-bold border-[1px] border-darkgray text-darkgray w-3/4 sm:w-1/2 py-2 rounded-full hover:bg-lightyellow hover:text-white hover:font-bold text-xs sm:text-sm">
+                        Sign Up
                         </button>
                     </div>
                 </form>
 
-                <!-- Data Privacy Modal -->
-                <div id="dataPrivacyModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-                    <div class="bg-white rounded-lg w-4/5 md:w-1/3 p-6">
-                        <h2 class="text-lg font-bold mb-4">Data Privacy Agreement</h2>
-                        <p class="text-sm text-gray-700 mb-6">
-                            Your account is secured by ensuring only authorized access to your data. By continuing, you agree to our Data Privacy Policy.
-                        </p>
-                        <div class="flex justify-end">
-                            <button onclick="hideModal()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 mr-2">
-                                Close
-                            </button>
-                            <button onclick="agreeToPrivacy()" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600">
-                                Agree
-                            </button>
-                        </div>
-                    </div>
-                </div>
+               <!-- Data Privacy Modal -->
+<div id="dataPrivacyModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+    <div class="bg-white rounded-lg w-4/5 md:w-1/3 p-6">
+        <h2 class="text-xl md:lg text-center font-bold mb-2 font-dmSerif">Data Privacy Agreement</h2>
+        <div class="pb-4 pr-4 pl-4 pt-2 overflow-y-auto max-h-64 text-sm bg-lightgray text-gray-700 mb-6 rounded-lg">
+            <p>
+                We are committed to protecting your personal data and ensuring its secure use within VizOra. By signing up, you agree to the following:
+            </p>
+            <ul class="list-disc pl-4 mt-4">
+                <li>
+                    <strong>Data Collection:</strong> We collect only the information necessary to personalize and enhance your data visualization experience, such as your name, email, and usage statistics. Your data will never be sold or shared with third parties without your explicit consent.
+                </li>
+                <li class="mt-2">
+                    <strong>Data Usage:</strong> Your data is used solely for generating insights, improving application functionality, and offering tailored visualization features. Aggregated and anonymized data may be used to improve our services without compromising your privacy.
+                </li>
+                <li class="mt-2">
+                    <strong>Data Security:</strong> Your data is encrypted and stored securely in compliance with global data protection standards. We implement safeguards to protect against unauthorized access, disclosure, or misuse of your data.
+                </li>
+            </ul>
+        </div>
+        <div class="flex justify-end">
+            <button onclick="hideModal()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 mr-2">
+                Close
+            </button>
+            <button onclick="agreeToPrivacy()" class="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-500">
+                Agree
+            </button>
+        </div>
+    </div>
+</div>
             </div>
         </div>
     </div>
