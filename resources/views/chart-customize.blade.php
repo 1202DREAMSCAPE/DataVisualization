@@ -17,10 +17,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 </head>
-<body class="bg-lightgray text-darkgray rounded-lg">
+<body class="bg-lightgray text-darkgray">
     <livewire:navbar />
 
-    <div class="container mx-auto p-4 ">
+    <div class="container mx-auto p-4">
         
 
         <!-- ChartDisplay Component -->

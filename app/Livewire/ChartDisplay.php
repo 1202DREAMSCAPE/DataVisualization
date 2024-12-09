@@ -94,6 +94,32 @@ class ChartDisplay extends Component
         }
     }
 
+    // Update the saveChart method in ChartDisplay.php
+public function saveChart()
+{
+    try {
+        // Validate required data
+        if (empty($this->chartData)) {
+            session()->flash('error', 'No chart data to save.');
+            return;
+        }
+
+        // Create the saved chart record
+        $savedChart = SavedChart::create([
+            'title' => $this->chartTitle ?: ucfirst($this->chartType) . ' Chart',
+            'type' => $this->chartType,
+            'chart_data' => $this->chartData,
+            'user_id' => auth()->id()
+        ]);
+
+        session()->flash('message', 'Chart saved successfully!');
+        return redirect()->route('saved-charts');
+    } catch (\Exception $e) {
+        logger()->error('Error saving chart:', ['error' => $e->getMessage()]);
+        session()->flash('error', 'Error saving chart: ' . $e->getMessage());
+    }
+}
+
     private function prepareBarChartData()
 {
     if (empty($this->xAxis) || empty($this->yAxis)) {
