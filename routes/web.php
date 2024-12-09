@@ -8,6 +8,7 @@ use App\Http\Controllers\ChartCustomizeController;
 use App\Http\Controllers\SignUpController;
 use App\Http\Controllers\LoginController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\ProfilePageController;
 
 // Landing Page
 Route::view('/', 'landing-page')->name('landing-page');
@@ -36,10 +37,16 @@ Route::get('/logout', function () {
 })->name('logout');
 
 
-// Profile Page
-Route::view('/profile', 'profile')
-    ->middleware(['auth'])
+// Route to display the profile page
+Route::get('/profile', [ProfilePageController::class, 'show'])
+    ->middleware('auth')
     ->name('profile');
+
+// Route to update the profile (using PATCH for partial updates)
+Route::patch('/profile', [ProfilePageController::class, 'update'])
+    ->middleware('auth')
+    ->name('profile.update');
+
 
 // Data Cleaning Route
 Route::get('/data-cleaning', DataCleaning::class)
