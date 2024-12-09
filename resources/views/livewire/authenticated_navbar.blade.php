@@ -39,7 +39,7 @@
                 </button>
             </a>
             <a href="{{ route('logout') }}">
-                <button class="bg-white border-darkgray  text-black font-bold px-4 py-1 rounded-lg hover:bg-gray-600 transition font-dmSerif text-sm md:text-base">
+                <button class="bg-white border-darkgray border-dashed border-1 text-black font-bold px-4 py-1 rounded-lg hover:bg-gray-600 transition font-dmSerif text-sm md:text-base">
                     Log Out
                 </button>
             </a>
