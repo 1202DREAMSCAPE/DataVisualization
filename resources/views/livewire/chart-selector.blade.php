@@ -20,7 +20,7 @@
     @foreach ([
         'bar' => ['label' => 'Bar Chart', 'image' => '/images/barchart.png'],
         'pie' => ['label' => 'Pie Chart', 'image' => '/images/piechart.png'],
-        'word-cloud' => ['label' => 'Word Cloud', 'image' => '/images/wordcloud.png'],
+        'bubble' => ['label' => 'Bubble Chart', 'image' => '/images/bubblechart.png'],
         'radar' => ['label' => 'Radar Chart', 'image' => '/images/radarchart.png'],
         'gauge' => ['label' => 'Gauge Chart', 'image' => '/images/gaugechart.png']
     ] as $chartType => $chart)

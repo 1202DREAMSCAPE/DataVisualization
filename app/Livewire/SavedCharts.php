@@ -13,11 +13,19 @@ class SavedCharts extends Component
     public $currentPreviewData = [];
     public $deletingChartId = null;
 
+    public $charts;
+
+
     protected $listeners = [
         'refreshCharts' => 'loadCharts',
         'confirmDelete' => 'handleDeleteConfirmation'
     ];
 
+    public function index()
+{
+    $charts = SavedChart::all(); // Fetch all saved charts
+    return view('your-view-name', compact('charts')); // Replace 'your-view-name' with your Blade file name
+}
 
     public function mount()
     {
@@ -25,55 +33,20 @@ class SavedCharts extends Component
         $this->currentHeaders = session('headers', []);
         $this->currentPreviewData = session('previewData', []);
         $this->loadCharts();
-    }
+        $this->charts = SavedChart::all(); // Fetch all charts from the database
 
- 
+    }
 
     public function deleteChart($chartId)
     {
-        try {
-            $chart = SavedChart::findOrFail($chartId);
-            
-            // Check authorization
-            if ($chart->user_id && $chart->user_id !== auth()->id()) {
-                $this->dispatch('showAlert', [
-                    'type' => 'error',
-                    'message' => 'Unauthorized to delete this chart'
-                ]);
-                return;
-            }
-
-            // Delete from database
-            $deleted = $chart->delete();
-
-            if ($deleted) {
-                // Remove from local array
-                $this->savedCharts = array_filter($this->savedCharts, function($chart) use ($chartId) {
-                    return $chart['id'] != $chartId;
-                });
-
-                // Clean up Chart.js instance
-                $this->dispatch('cleanupChart', ['chartId' => $chartId]);
-                
-                $this->dispatch('showAlert', [
-                    'type' => 'success',
-                    'message' => 'Chart deleted successfully'
-                ]);
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Chart deletion failed', [
-                'chart_id' => $chartId,
-                'error' => $e->getMessage()
-            ]);
-
-            $this->dispatch('showAlert', [
-                'type' => 'error',
-                'message' => 'Failed to delete chart'
-            ]);
+        $chart = SavedChart::find($chartId);
+    
+        if ($chart) {
+            $chart->delete();
+            $this->emit('chartDeleted', $chartId); // Optional: Emit an event if needed
         }
     }
-
+    
 
     public function loadCharts()
     {
@@ -94,7 +67,34 @@ class SavedCharts extends Component
         ->toArray();
     }
 
+    public function saveChart($chartData)
+{
+    try {
+        // Create a new chart entry
+        $chart = new SavedChart();
+        $chart->title = $chartData['title'] ?? 'Untitled Chart';
+        $chart->chart_data = json_encode($chartData['data']);
+        $chart->user_id = auth()->id(); // Optional if user authentication is implemented
+        $chart->save();
 
+        // Reload charts to include the newly saved chart
+        $this->loadCharts();
+
+        // Notify the frontend that the chart was saved
+        $this->dispatchBrowserEvent('chartSaved', ['success' => true]);
+
+        session()->flash('message', 'Chart saved successfully.');
+    } catch (\Exception $e) {
+        \Log::error('Error saving chart: ' . $e->getMessage());
+        $this->dispatchBrowserEvent('chartSaved', ['success' => false, 'error' => $e->getMessage()]);
+
+        session()->flash('error', 'Failed to save the chart. Please try again.');
+    }
+}
+
+
+
+    
     public function createNewChart()
     {
         if (empty($this->currentHeaders) || empty($this->currentPreviewData)) {

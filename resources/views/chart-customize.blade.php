@@ -21,15 +21,7 @@
     <livewire:navbar />
 
     <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-4">Customize Your {{ ucfirst($chartType ?? 'Chart') }}</h1>
         
-        @if($chartType === 'radar')
-            <p class="mb-4">Select multiple metrics to compare across categories. Each category will be represented as a polygon on the radar chart.</p>
-        @elseif($chartType === 'pie')
-            <p class="mb-4">Select columns to show their distribution in a pie chart format.</p>
-        @else
-            <p class="mb-4">Select which columns from your data will be used for the chart's axes or metrics.</p>
-        @endif
 
         <!-- ChartDisplay Component -->
         @livewire('chart-display', [

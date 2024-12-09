@@ -68,7 +68,7 @@
                     </div>
                     <!-- Mobile Example Image -->
                     <div class="mt-4 lg:hidden" x-show="activeFeature === 1" x-transition>
-                        <img src="{{ asset('images/bgsquare.gif') }}" alt="Bar Chart Example" class="w-full max-h-96 object-cover rounded-lg shadow-lg">
+                        <img src="{{ asset('images/dashboard.png') }}" alt="Bar Chart Example" class="w-full max-h-96 object-cover rounded-lg shadow-lg">
                     </div>
                 </div>
 
@@ -89,7 +89,7 @@
                     </div>
                     <!-- Mobile Example Image -->
                     <div class="mt-4 lg:hidden" x-show="activeFeature === 2" x-transition>
-                        <img src="{{ asset('images/bgsquare.gif') }}" alt="AI Dashboard Example" class="w-full max-h-96 object-cover rounded-lg shadow-lg">
+                        <img src="{{ asset('images/fileprev.png') }}" alt="AI Dashboard Example" class="w-full max-h-96 object-cover rounded-lg shadow-lg">
                     </div>
                 </div>
 
@@ -109,7 +109,7 @@
                     </div>
                     <!-- Mobile Example Image -->
                     <div class="mt-4 lg:hidden" x-show="activeFeature === 3" x-transition>
-                        <img src="{{ asset('images/bgsquare.gif') }}" alt="File Support Example" class="w-full max-h-96 object-cover rounded-lg shadow-lg">
+                        <img src="{{ asset('images/fileupload.png') }}" alt="File Support Example" class="w-full max-h-96 object-cover rounded-lg shadow-lg">
                     </div>
                 </div>
             </div>
@@ -117,13 +117,13 @@
             <!-- Desktop Example Image Placeholder -->
             <div class="relative overflow-hidden transition-all duration-500 ease-in-out hidden lg:block" x-show="activeFeature !== null">
                 <div x-show="activeFeature === 1" x-transition>
-                    <img src="{{ asset('images/bgsquare.gif') }}" alt="Bar Chart Example" class="w-full max-h-96 object-cover rounded-lg shadow-lg">
+                    <img src="{{ asset('images/dashboard.png') }}" alt="Bar Chart Example" class="w-full max-h-96 object-cover rounded-lg shadow-lg">
                 </div>
                 <div x-show="activeFeature === 2" x-transition>
-                    <img src="{{ asset('images/bgsquare.gif') }}" alt="AI Dashboard Example" class="w-full max-h-96 object-cover rounded-lg shadow-lg">
+                    <img src="{{ asset('images/fileprev.png') }}" alt="AI Dashboard Example" class="w-full max-h-96 object-cover rounded-lg shadow-lg">
                 </div>
                 <div x-show="activeFeature === 3" x-transition>
-                    <img src="{{ asset('images/bgsquare.gif') }}" alt="File Support Example" class="w-full max-h-96 object-cover rounded-lg shadow-lg">
+                    <img src="{{ asset('images/fileupload.png') }}" alt="File Support Example" class="w-full max-h-96 object-cover rounded-lg shadow-lg">
                 </div>
             </div>
         </div>
@@ -162,7 +162,7 @@
                         Mission
                     </button>
                     <div x-show="active === 2" x-transition class="mt-2 p-4 bg-gray-100 rounded-lg text-gray-700">
-                        To empower individuals and businesses to transform complex datasets into actionable insights through innovative tools and design.
+                        To empower individuals and businesses to transform datasets into insights through tools and design.
                     </div>
                 </div>
                 <!-- Button 3 -->

@@ -47,6 +47,17 @@ class FileUpload extends Component
         ]);
     
         logger('File metadata saved to database.');
+    
+        // Save recently used file in session
+        session([
+            'recently_used_file' => [
+                'filename' => $this->filename,
+                'headers' => $this->headers,
+                'previewData' => $this->previewData,
+            ],
+        ]);
+    
+        logger('Recently used file saved to session.');
     }
     
 
@@ -100,6 +111,30 @@ class FileUpload extends Component
         }
     }
     
+
+
+    public function uploadRecentlyUsedFile()
+{
+    // Check if a recently used file exists in the session
+    if (session()->has('recently_used_file')) {
+        $recentFile = session('recently_used_file');
+
+        $this->filename = $recentFile['filename'];
+        $this->headers = $recentFile['headers'];
+        $this->previewData = $recentFile['previewData'];
+
+        logger('Recently used file loaded successfully.', [
+            'filename' => $this->filename,
+            'headers' => $this->headers,
+            'previewData' => $this->previewData,
+        ]);
+
+        session()->flash('success', 'Recently used file loaded successfully.');
+    } else {
+        logger('No recently used file found in the session.');
+        session()->flash('error', 'No recently used file found.');
+    }
+}
 
 
     /**
