@@ -11,6 +11,7 @@ class ChartDisplay extends Component
     public $data = [];
     public $chartData = [];
     public $previewData = []; // Add this property
+    public $selectedColumns = []; // Holds the selected column for the pie chart
 
     public $xAxis;
     public $yAxis;
@@ -35,6 +36,74 @@ class ChartDisplay extends Component
         }
     }
 
+    public function updatedSelectedColumns()
+    {
+        if ($this->chartType === 'pie') {
+            $this->preparePieChartData();
+        }
+    }
+
+    private function preparePieChartData()
+    {
+        // Validate column selection
+        if (empty($this->selectedColumns)) {
+            session()->flash('error', 'Please select at least one column for the pie chart.');
+            return;
+        }
+
+        // Aggregate data across selected columns
+        $aggregatedData = [];
+
+        foreach ($this->data as $item) {
+            foreach ($this->selectedColumns as $column) {
+                $label = $this->headers[$column] ?? $column; // Use header as label if available
+                $value = (int) $item[$column] ?? 0;
+
+                if (!isset($aggregatedData[$label])) {
+                    $aggregatedData[$label] = 0;
+                }
+                $aggregatedData[$label] += $value;
+            }
+        }
+
+        // Remove zero values
+        $aggregatedData = array_filter($aggregatedData);
+
+        if (empty($aggregatedData)) {
+            session()->flash('error', 'No valid data for pie chart.');
+            return;
+        }
+
+        $backgroundColors = $this->generateColors(count($aggregatedData));
+
+        $this->chartData = [
+            'type' => 'pie',
+            'data' => [
+                'labels' => array_keys($aggregatedData),
+                'datasets' => [
+                    [
+                        'data' => array_values($aggregatedData),
+                        'backgroundColor' => $backgroundColors,
+                        'hoverOffset' => 4,
+                    ],
+                ],
+            ],
+            'options' => [
+                'responsive' => true,
+                'plugins' => [
+                    'legend' => ['position' => 'top'],
+                    'title' => [
+                        'display' => true,
+                        'text' => 'Distribution of Selected Columns'
+                    ]
+                ],
+            ],
+        ];
+
+        logger()->info('Pie Chart Data Prepared:', $this->chartData);
+        $this->dispatch('updateChart', $this->chartData);
+    }
+
     // public function updatedXAxis()
     // {
     //     $this->prepareChartData();
@@ -56,54 +125,56 @@ class ChartDisplay extends Component
     }
 
     public function prepareChartData()
-{
-    if (empty($this->xAxis) || empty($this->yAxis)) {
-        session()->flash('error', 'Invalid axis selection.');
-        return;
-    }
-
-    // Extract labels and values
-    $labels = array_map(fn($item) => $item[$this->xAxis] ?? null, $this->data);
-    $values = array_map(fn($item) => (int) $item[$this->yAxis] ?? 0, $this->data);
-
-    // Ensure valid labels and values
-    $labels = array_filter($labels); // Remove nulls
-    $values = array_filter($values, fn($value) => $value !== null); // Remove nulls
-
-    // Check for empty labels or values
-    if (empty($labels) || empty($values)) {
-        session()->flash('error', 'No valid data for chart.');
-        logger()->error('Empty labels or values.', ['labels' => $labels, 'values' => $values]);
-        return;
-    }
-
-    $backgroundColors = $this->generateColors(count($values));
-    $borderColors = array_map(fn($color) => str_replace('0.2', '1', $color), $backgroundColors);
-
-
-    // Build chart data
-    $this->chartData = [
-        'type' => $this->chartType, // e.g., 'bar', 'line', etc.
-        'data' => [
-            'labels' => array_values($labels), // Ensure zero-based index
-            'datasets' => [
-                [
-                    'label' => $this->headers[$this->yAxis] ?? 'Dynamic Dataset', // Use Y-axis header as dataset label
-                    'data' => array_values($values), // Ensure zero-based index
-                    'backgroundColor' => $backgroundColors,
-                    'borderColor' => $borderColors,
-                    'borderWidth' => 1,
+    {
+        if ($this->chartType === 'pie') {
+            $this->preparePieChartData();
+            return;
+        }
+    
+        // Logic for bar chart (unchanged)
+        if (empty($this->xAxis) || empty($this->yAxis)) {
+            session()->flash('error', 'Invalid axis selection.');
+            return;
+        }
+    
+        // Extract labels and values for bar chart
+        $labels = array_map(fn($item) => $item[$this->xAxis] ?? null, $this->data);
+        $values = array_map(fn($item) => (int) $item[$this->yAxis] ?? 0, $this->data);
+    
+        // Ensure valid labels and values
+        $labels = array_filter($labels); // Remove nulls
+        $values = array_filter($values, fn($value) => $value !== null); // Remove nulls
+    
+        $backgroundColors = $this->generateColors(count($values));
+        $borderColors = array_map(fn($color) => str_replace('0.2', '1', $color), $backgroundColors);
+    
+        // Build chart data for bar chart
+        $this->chartData = [
+            'type' => $this->chartType,
+            'data' => [
+                'labels' => array_values($labels),
+                'datasets' => [
+                    [
+                        'label' => $this->headers[$this->yAxis] ?? 'Dataset',
+                        'data' => array_values($values),
+                        'backgroundColor' => $backgroundColors,
+                        'borderColor' => $borderColors,
+                        'borderWidth' => 1,
+                    ],
                 ],
             ],
-        ],
-    ];
-
-
-    // Update previewData for the table
-    logger()->info('Dispatching hardcoded chartData:', $this->chartData);
-    $this->dispatch('updateChart', $this->chartData);
-}    
-
+            'options' => [
+                'responsive' => true,
+                'scales' => [
+                    'y' => ['beginAtZero' => true],
+                ],
+            ],
+        ];
+        logger()->info('Bar Chart data prepared.', $this->chartData);
+        $this->dispatch('updateChart', $this->chartData);
+    }
+    
+    
 
 private function generateColors($count)
 {
@@ -129,6 +200,8 @@ private function generateColors($count)
    
     public function render()
     {
-        return view('livewire.chart-display');
+        return view('livewire.chart-display', [
+            'availableColumns' => $this->headers // Pass headers to the view
+        ]);
     }
 }
