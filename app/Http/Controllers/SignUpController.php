@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use App\Models\User; // Assuming you're using the User model for storing user data
 
 class SignUpController extends Controller
@@ -23,14 +24,17 @@ class SignUpController extends Controller
         }
 
         // Create the user
-        User::create([
+        $user = User::create([
             'name' => $request->input('name'),
             'email' => $request->input('email'),
             'username' => $request->input('username'),
             'password' => bcrypt($request->input('password')),
         ]);
 
+        // Log in the user immediately
+        Auth::login($user);
+
         // Redirect to dashboard or another page
-        return redirect()->route('project')->with('success', 'Account created successfully!');
+        return redirect()->route('project')->with('success', 'Account created successfully! You are now logged in.');
     }
 }
