@@ -1,9 +1,20 @@
 <div class="bg-white rounded-lg p-6 shadow-lg" wire:ignore>
-@vite('resources/js/chart.js')
+    @vite('resources/js/chart.js')
 
-    <h2 class="text-xl font-semibold text-center mb-4">{{ ucfirst($chartType) }} Visualization</h2>
+    <h2 class="text-xl font-semibold text-center mb-4">{{ ucfirst($chartType) }}Chart Visualization</h2>
 
-    <div class="grid grid-cols-1 gap-4 mb-4">
+    <!-- Title Input -->
+    <div class="mb-4">
+        <label for="chartTitle" class="block text-gray-700 text-sm font-bold mb-2">Chart Title</label>
+        <input 
+            type="text" 
+            wire:model="chartTitle"
+            class="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Enter chart title"
+        >
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 mb-2">
         @if ($chartType === 'radar')
             {{-- Radar Chart Controls --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -35,10 +46,9 @@
                     @error('selectedCategories') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
-
         @elseif ($chartType === 'pie')
             {{-- Pie Chart Controls --}}
-            <div class="mb-4">
+            <div class="mb-2">
                 <label class="block text-gray-700 text-sm font-bold mb-2">Select Data to Show</label>
                 <div class="flex flex-wrap gap-2">
                     @foreach ($headers as $key => $label)
@@ -52,10 +62,9 @@
                 </div>
                 @error('selectedColumns') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
-
         @elseif ($chartType === 'gauge')
             {{-- Gauge Chart Controls --}}
-            <div class="mb-4">
+            <div class="mb-2">
                 <label class="block text-gray-700 text-sm font-bold mb-2">Select Metric</label>
                 <div class="flex flex-wrap gap-2">
                     @foreach ($headers as $key => $label)
@@ -69,7 +78,6 @@
                 </div>
                 @error('selectedColumns') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
-
         @elseif ($chartType === 'bar')
             {{-- Bar Chart Controls --}}
             <div class="grid grid-cols-2 gap-4">
@@ -98,52 +106,52 @@
     {{-- Chart Display Area --}}
     <div class="relative h-96 bg-gray-50 rounded-lg">
         <canvas id="chartCanvas" class="{{ empty($chartData) ? 'hidden' : '' }}"></canvas>
-        
-        <div class="flex items-center justify-center h-full text-gray-500 {{ !empty($chartData) ? 'hidden' : '' }}">
-            <p class="text-center">
-                @switch($chartType)
-                    @case('pie')
-                        Select data to generate a pie chart
-                        @break
-                    @case('bar')
-                        Choose axes to create a bar chart
-                        @break
-                    @case('radar')
-                        Pick metrics and categories for radar comparison
-                        @break
-                    @case('gauge')
-                        Select a metric for gauge visualization
-                        @break
-                    @default
-                        Select options to generate chart
-                @endswitch
-            </p>
-        </div>
     </div>
+
 
     {{-- Control Buttons --}}
     <div class="mt-6 flex justify-center space-x-4">
-        <button wire:click="$dispatch('openChartSelector')" 
-                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
-            Change Chart Type
-        </button>
-        <button wire:click="resetChart" 
-                class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg border transition-colors">
-            Reset Chart
+        <button type="button" wire:click="saveChart"
+                class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 font-dmSerif rounded-lg transition-colors">
+            Save Chart
         </button>
     </div>
 
     <script>
-    document.addEventListener('livewire:initialized', () => {
-        console.log('Livewire initialized, setting up chart listeners');
-    });
+        document.addEventListener('livewire:initialized', () => {
+            console.log('Livewire initialized, setting up chart listeners');
+            
+            // Listen for the getChartData event
+            Livewire.on('getChartData', () => {
+                const chartCanvas = document.getElementById('chartCanvas');
+                const chartInstance = Chart.getChart(chartCanvas);
+                
+                if (!chartInstance) {
+                    console.error('No chart instance found');
+                    return;
+                }
 
-    Livewire.on('updateChart', (chartData) => {
-        console.log('Livewire updateChart event received:', chartData);
-        const canvas = document.getElementById('chartCanvas');
-        if (canvas) {
-            canvas.classList.remove('hidden');
-        }
-    });
+                const chartData = {
+                    type: chartInstance.config.type,
+                    data: chartInstance.config.data,
+                    options: chartInstance.config.options
+                };
+
+                @this.handleChartData(chartData);
+            });
+
+            // Listen for successful chart save
+            Livewire.on('chartSaved', () => {
+                console.log('Chart saved successfully');
+            });
+        });
+
+        Livewire.on('updateChart', (chartData) => {
+            console.log('Livewire updateChart event received:', chartData);
+            const canvas = document.getElementById('chartCanvas');
+            if (canvas) {
+                canvas.classList.remove('hidden');
+            }
+        });
     </script>
 </div>

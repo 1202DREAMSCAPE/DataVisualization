@@ -58,10 +58,9 @@
                         @click="activeFeature = activeFeature === 1 ? null : 1"
                         class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white rounded-lg shadow-lg p-6 flex flex-col justify-between cursor-pointer hover:scale-105 transition-transform">
                         <div class="mb-4">
-                            <h3 class="text-lg font-semibold mb-2">Personalized Bar Charts</h3>
+                            <h3 class="text-lg font-semibold mb-2">Personalized Charts</h3>
                             <p class="text-sm">
-                                Create custom bar charts in seconds by uploading your data. Enjoy intuitive customization options.
-                            </p>
+                            Design your data visualization to suit your unique needs with customizable bar charts.                            </p>
                         </div>
                         <button class="bg-white text-black px-4 py-2 mt-4 rounded-full font-semibold hover:bg-gray-200 w-full">
                             See Example
@@ -79,10 +78,10 @@
                         @click="activeFeature = activeFeature === 2 ? null : 2"
                         class="bg-gradient-to-br from-indigo-600 via-blue-600 to-green-500 text-white rounded-lg shadow-lg p-6 flex flex-col justify-between cursor-pointer hover:scale-105 transition-transform">
                         <div class="mb-4">
-                            <h3 class="text-lg font-semibold mb-2">AI-Powered Dashboard</h3>
+                            <h3 class="text-lg font-semibold mb-2">Generate Reports</h3>
                             <p class="text-sm">
-                                Leverage AI tools for faster insights and better decision-making. Our dashboard is built for efficiency.
-                            </p>
+                            Create detailed, professional reports with just a few clicks.
+                                                    </p>
                         </div>
                         <button class="bg-white text-black px-4 py-2 mt-4 rounded-full font-semibold hover:bg-gray-200 w-full">
                             See Example
@@ -102,8 +101,7 @@
                         <div class="mb-4">
                             <h3 class="text-lg font-semibold mb-2">Seamless File Support</h3>
                             <p class="text-sm">
-                                Effortlessly upload and work with xlsx or CSV files to streamline your projects.
-                            </p>
+                            Effortlessly integrate and manage data from multiple file formats for a smooth workflow.                            </p>
                         </div>
                         <button class="bg-white text-black px-4 py-2 mt-4 rounded-full font-semibold hover:bg-gray-200 w-full">
                             See Example

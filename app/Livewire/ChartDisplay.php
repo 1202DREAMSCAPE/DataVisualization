@@ -3,12 +3,14 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use App\Models\SavedChart;
 
 class ChartDisplay extends Component
 {
     public $chartType;
     public $headers = [];
     public $data = [];
+    public $chartTitle = ' ';
     public $chartData = [];
     public $previewData = [];
     public $selectedColumns = [];
@@ -18,11 +20,14 @@ class ChartDisplay extends Component
     public $yAxis;
     public $selectedCategories = [];
 
+    public $savedCharts = [];
+
     public function mount($chartType = null, $headers = [], $data = [])
     {
         $this->chartType = $chartType ?? 'bar';
         $this->headers = $headers;
         $this->data = $data;
+        $this->savedCharts = [];
 
         logger('ChartDisplay mounted', [
             'chartType' => $this->chartType,
@@ -43,6 +48,70 @@ class ChartDisplay extends Component
             $this->prepareChartData();
         }
     }
+
+
+    public function saveChart()
+    {
+        try {
+            // This will trigger JavaScript to collect chart data
+            $this->dispatch('getChartData');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error saving chart: ' . $e->getMessage());
+        }
+    }
+
+    // Add this method to receive chart data from JavaScript
+    public function handleChartData($chartData)
+{
+    try {
+        SavedChart::create([
+            'title' => $this->chartTitle,
+            'chart_data' => $chartData,
+            'user_id' => auth()->id()
+        ]);
+
+        session()->flash('message', 'Chart saved successfully!');
+        $this->dispatch('chartSaved');
+        
+        // Redirect to saved charts page
+        return redirect()->route('saved-charts');
+    } catch (\Exception $e) {
+        session()->flash('error', 'Error saving chart: ' . $e->getMessage());
+    }
+}
+
+
+public function deleteChart($index)
+{
+    unset($this->savedCharts[$index]);
+    $this->savedCharts = array_values($this->savedCharts);
+
+    $this->dispatchBrowserEvent('chartDeleted', $this->savedCharts);
+}
+
+public function saveChartAndRedirect()
+{
+    try {
+        $this->validate([
+            'chartData' => 'required',
+            'chartType' => 'required',
+        ]);
+
+        // Manually set the chartData and chartType properties
+        $this->chartData = $this->chartData;
+        $this->chartType = $this->chartType;
+
+        // Save the chart (this assumes you have a database or session-based saving logic)
+        $title = ucfirst($this->chartType) . ' Chart';
+        $this->saveChart($this->chartData, $title);
+
+        // Redirect to /project
+        return redirect()->route('project')->with('success', 'Chart saved successfully!');
+    } catch (\Exception $e) {
+        logger()->error('Error saving chart:', ['error' => $e->getMessage()]);
+        session()->flash('error', 'An error occurred while saving the chart. Please try again.');
+    }
+}
 
     public function updatedSelectedColumns($value)
     {
@@ -346,6 +415,22 @@ class ChartDisplay extends Component
         $this->selectedMetrics = [];
         $this->categories = [];
     }
+
+    public function proceed()
+{
+    $this->validate([
+        'chartType' => 'required',
+        // other validation rules
+    ]);
+
+    $chartData = $this->chartData;
+    $chartTitle = 'New Chart';
+
+    $this->saveChart($chartData, $chartTitle);
+
+    $this->dispatchBrowserEvent('close-chart-selector');
+    $this->resetChart();
+}
 
     public function render()
     {

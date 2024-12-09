@@ -30,5 +30,23 @@ Route::get('/data-cleaning', DataCleaning::class)
 Route::get('/chart/customize/{type}', [ChartCustomizeController::class, 'customize'])
     ->name('chart.customize');
 
+
+Route::get('/saved-charts', function () {
+        return view('savedchartsmain');
+    })->name('saved-charts');
+
+    Route::get('/debug-charts', function() {
+        return [
+            'charts' => App\Models\SavedChart::all(),
+            'user' => auth()->user()
+        ];
+    });
+
+
+    Route::post('/chart/save', [ChartCustomizeController::class, 'saveChart'])
+    ->name('chart.save')
+    ->middleware('auth');
+
+
 // Include Authentication Routes
 require __DIR__.'/auth.php';

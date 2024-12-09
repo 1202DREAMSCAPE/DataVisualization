@@ -7,83 +7,47 @@ use Livewire\Component;
 class ChartSelector extends Component
 {
     public $isOpen = false;
-    public $headers = [];
-    public $previewData = [];
     public $selectedChart = null;
 
-    protected $listeners = [
-        'open-chart-selector' => 'loadChartData',
-        'close-chart-selector' => 'close',
-    ];
-
-    public function loadChartData(array $headers, array $previewData)
+    public function mount()
     {
-        $this->headers = $headers;
-        $this->previewData = $previewData;
-        $this->isOpen = true;
-
-        logger('ChartSelector: Data loaded', [
-            'headers' => $this->headers,
-            'previewData' => $this->previewData,
-        ]);
+        logger('ChartSelector mounted on: ' . request()->url());
+    $this->selectedChart = null;
     }
 
-    public function selectChart($chartType)
+    public function loadChartData($data = [])
     {
-        $this->selectedChart = $chartType;
+        $this->isOpen = true;
+        logger('Chart selector opened via Livewire dispatch');
+    }
 
-        logger('ChartSelector: Chart selected.', [
-            'selectedChart' => $this->selectedChart,
-        ]);
+    public function selectChart($type)
+    {
+        $this->selectedChart = $type;
+        logger('Chart selected: ' . $type);
     }
 
     public function proceed()
     {
         if (!$this->selectedChart) {
-            session()->flash('error', 'Please select a chart type before proceeding.');
-            logger('ChartSelector: Proceed failed. No chart selected.');
             return;
         }
-
-        if (empty($this->headers) || empty($this->previewData)) {
-            session()->flash('error', 'Missing data for chart visualization.');
-            logger('ChartSelector: Proceed failed. Headers or preview data missing.', [
-                'headers' => $this->headers,
-                'previewData' => $this->previewData,
-            ]);
-            return;
-        }
-
-        session([
-            'chartType' => $this->selectedChart,
-            'headers' => $this->headers,
-            'previewData' => $this->previewData,
+        
+        return redirect()->route('project')->with([
+            'selectedChart' => $this->selectedChart
         ]);
-
-        logger('ChartSelector: Proceeding with chart.', [
-            'selectedChart' => $this->selectedChart,
-            'headers' => $this->headers,
-            'previewData' => $this->previewData,
-        ]);
-
-        $this->redirect(route('chart.customize', $this->selectedChart));
     }
 
     public function close()
     {
         $this->isOpen = false;
-        logger('ChartSelector: Modal closed.', [
-            'isOpen' => $this->isOpen,
-        ]);
+        $this->selectedChart = null;
+        logger('Modal closed');
     }
 
     public function render()
     {
-        logger('Rendering ChartSelector component.', [
-            'isOpen' => $this->isOpen,
-            'selectedChart' => $this->selectedChart,
-        ]);
-
+        logger('Rendering with selected chart: ' . $this->selectedChart);
         return view('livewire.chart-selector');
     }
 }

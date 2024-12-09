@@ -35,8 +35,10 @@
         @livewire('chart-display', [
             'chartType' => $chartType,
             'headers' => $headers,
-            'data' => $previewData
+            'data' => $previewData,
+            'savedCharts' => $savedCharts ?? [] // Use an empty array as fallback
         ])
+
     </div>
 
     @livewireScripts
