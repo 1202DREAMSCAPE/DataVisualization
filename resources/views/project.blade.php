@@ -18,7 +18,7 @@
     <!-- Main Content -->
     <div class="flex-1">
         <!-- Navbar -->
-        <livewire:navbar />
+        <livewire:authenticated_navbar />
         <!-- Main Content Area -->
         <main class="p-6">
                 <!-- Call Livewire FileUpload Component -->

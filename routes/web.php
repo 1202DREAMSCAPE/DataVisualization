@@ -5,6 +5,9 @@ use App\Livewire\ChartCustomizer;
 use App\Livewire\DataCleaning;
 use App\Http\Controllers\ChartController;
 use App\Http\Controllers\ChartCustomizeController;
+use App\Http\Controllers\SignUpController;
+use App\Http\Controllers\LoginController;
+use Illuminate\Support\Facades\Auth;
 
 // Landing Page
 Route::view('/', 'landing-page')->name('landing-page');
@@ -14,8 +17,24 @@ Route::view('/project', 'project')->name('project');
 
 // Dashboard
 Route::view('/dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
     ->name('dashboard');
+
+// Dashboard
+Route::view('/signup', 'signup')
+    ->name('signup');
+
+Route::post('/signup', [SignUpController::class, 'store'])->name('signup.store');
+
+// Dashboard
+Route::view('/login', 'login')
+    ->name('login');
+Route::post('/login', [LoginController::class, 'store'])->name('login.store');
+
+Route::get('/logout', function () {
+    Auth::logout();
+    return redirect('/'); // Redirect to the homepage after logout
+})->name('logout');
+
 
 // Profile Page
 Route::view('/profile', 'profile')
