@@ -49,37 +49,103 @@ class ChartDisplay extends Component
         }
     }
 
-
     public function saveChart()
     {
         try {
-            // This will trigger JavaScript to collect chart data
-            $this->dispatch('getChartData');
+            $savedChart = SavedChart::create([
+                'title' => $this->chartTitle,
+                'chart_data' => $this->chartData,
+                'user_id' => auth()->id()
+            ]);
+
+            session()->flash('message', 'Chart saved successfully!');
+            return redirect()->route('saved-charts');
         } catch (\Exception $e) {
             session()->flash('error', 'Error saving chart: ' . $e->getMessage());
         }
     }
 
+
+
+    // Add this new method for saving charts
+ 
     // Add this method to receive chart data from JavaScript
     public function handleChartData($chartData)
-{
-    try {
-        SavedChart::create([
-            'title' => $this->chartTitle,
-            'chart_data' => $chartData,
-            'user_id' => auth()->id()
-        ]);
+    {
+        try {
+            SavedChart::create([
+                'title' => $this->chartTitle,
+                'chart_data' => $chartData,
+                'user_id' => auth()->id()
+            ]);
 
-        session()->flash('message', 'Chart saved successfully!');
-        $this->dispatch('chartSaved');
-        
-        // Redirect to saved charts page
-        return redirect()->route('saved-charts');
-    } catch (\Exception $e) {
-        session()->flash('error', 'Error saving chart: ' . $e->getMessage());
+            session()->flash('message', 'Chart saved successfully!');
+            $this->dispatch('chartSaved');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error saving chart: ' . $e->getMessage());
+        }
     }
-}
 
+    public function updateChartData()
+    {
+        if (empty($this->headers)) {
+            logger()->warning('No headers available for chart data update');
+            return;
+        }
+    
+        try {
+            switch ($this->chartType) {
+                case 'pie':
+                    $this->preparePieChartData();
+                    break;
+                case 'bar':
+                    if (empty($this->xAxis) || empty($this->yAxis)) {
+                        throw new \Exception('Invalid axis selection.');
+                    }
+                    
+                    $labels = array_column($this->data, $this->xAxis);
+                    $values = array_map(fn($item) => floatval($item[$this->yAxis] ?? 0), $this->data);
+                    
+                    $this->chartData = [
+                        'type' => 'bar',
+                        'data' => [
+                            'labels' => array_values(array_filter($labels)),
+                            'datasets' => [[
+                                'label' => $this->headers[$this->yAxis] ?? 'Dataset',
+                                'data' => array_values(array_filter($values)),
+                                'backgroundColor' => $this->generateColors(count($values)),
+                                'borderColor' => 'rgba(54, 162, 235, 1)',
+                                'borderWidth' => 1
+                            ]]
+                        ],
+                        'options' => [
+                            'responsive' => true,
+                            'scales' => ['y' => ['beginAtZero' => true]]
+                        ]
+                    ];
+                    break;
+                    
+                case 'radar':
+                    $this->prepareRadarChartData();
+                    break;
+                    
+                case 'gauge':
+                    $this->prepareGaugeChartData();
+                    break;
+            }
+    
+            if (!empty($this->chartData)) {
+                $this->dispatch('updateChart', $this->chartData);
+                logger()->info('Chart data updated successfully', ['type' => $this->chartType]);
+            }
+        } catch (\Exception $e) {
+            logger()->error('Error updating chart data', [
+                'error' => $e->getMessage(),
+                'type' => $this->chartType
+            ]);
+            session()->flash('error', 'Error updating chart: ' . $e->getMessage());
+        }
+    }
 
 public function deleteChart($index)
 {
@@ -330,7 +396,7 @@ public function saveChartAndRedirect()
                     'legend' => ['position' => 'top'],
                     'title' => [
                         'display' => true,
-                        'text' => 'Distribution of Selected Columns'
+                        'text' => 'Generated Chart'
                     ]
                 ],
             ],

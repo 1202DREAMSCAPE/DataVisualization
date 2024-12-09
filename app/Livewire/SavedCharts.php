@@ -27,8 +27,6 @@ class SavedCharts extends Component
         $this->loadCharts();
     }
 
- 
-
     public function deleteChart($chartId)
     {
         try {
@@ -94,7 +92,34 @@ class SavedCharts extends Component
         ->toArray();
     }
 
+    public function saveChart($chartData)
+{
+    try {
+        // Create a new chart entry
+        $chart = new SavedChart();
+        $chart->title = $chartData['title'] ?? 'Untitled Chart';
+        $chart->chart_data = json_encode($chartData['data']);
+        $chart->user_id = auth()->id(); // Optional if user authentication is implemented
+        $chart->save();
 
+        // Reload charts to include the newly saved chart
+        $this->loadCharts();
+
+        // Notify the frontend that the chart was saved
+        $this->dispatchBrowserEvent('chartSaved', ['success' => true]);
+
+        session()->flash('message', 'Chart saved successfully.');
+    } catch (\Exception $e) {
+        \Log::error('Error saving chart: ' . $e->getMessage());
+        $this->dispatchBrowserEvent('chartSaved', ['success' => false, 'error' => $e->getMessage()]);
+
+        session()->flash('error', 'Failed to save the chart. Please try again.');
+    }
+}
+
+
+
+    
     public function createNewChart()
     {
         if (empty($this->currentHeaders) || empty($this->currentPreviewData)) {
