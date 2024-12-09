@@ -1,3 +1,9 @@
+import Chart from 'chart.js/auto';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+
+Chart.register(ChartDataLabels);
+
+
 // Event Listener for Chart Saved
 window.addEventListener('chartSaved', (event) => {
     console.log('Charts saved:', event.detail);
