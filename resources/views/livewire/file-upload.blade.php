@@ -101,12 +101,6 @@
         <!-- Buttons Section -->
         <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3 sm:space-x-4 sm:gap-0">
             <button
-                wire:click="startDataCleaning"
-                class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow"
-            >
-                Start Data Cleaning
-            </button>
-            <button
                 wire:click="$set('filename', null)"
                 class="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-lg border border-gray-300 shadow"
             >
