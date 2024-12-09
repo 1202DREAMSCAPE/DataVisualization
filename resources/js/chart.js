@@ -3,7 +3,80 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 Chart.register(ChartDataLabels);
 
+// Add to your chart.js file
 
+function createBubbleChart(chartData) {
+    const canvas = document.getElementById('bubbleChart');
+    if (!canvas || !chartData.data) return;
+
+    // Clear any existing chart
+    if (window.currentChartInstance) {
+        window.currentChartInstance.destroy();
+    }
+
+    const data = chartData.data.map(item => ({
+        x: item.x,
+        y: item.y,
+        r: Math.sqrt(item.value) * 3, // Adjust bubble size scaling
+        value: item.value,
+        label: item.label
+    }));
+
+    const config = {
+        type: 'bubble',
+        data: {
+            datasets: [{
+                data: data,
+                backgroundColor: data.map(() => 
+                    `hsla(${Math.random() * 360}, 70%, 50%, 0.6)`
+                ),
+                borderColor: data.map(() => 
+                    `hsla(${Math.random() * 360}, 70%, 50%, 1)`
+                ),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    min: 0,
+                    max: 1,
+                    grid: {
+                        color: '#e2e8f0'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value.toFixed(1);
+                        }
+                    }
+                },
+                y: {
+                    min: 0,
+                    max: 100,
+                    grid: {
+                        color: '#e2e8f0'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.raw.label}: ${context.raw.value}`;
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    window.currentChartInstance = new Chart(canvas, config);
+}
 // Event Listener for Chart Saved
 window.addEventListener('chartSaved', (event) => {
     console.log('Charts saved:', event.detail);

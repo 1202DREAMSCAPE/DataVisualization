@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Livewire;
 
 use Livewire\Component;
@@ -7,6 +8,7 @@ use App\Models\SavedChart;
 
 class ChartDisplay extends Component
 {
+    // Existing properties remain the same
     public $chartType;
     public $headers = [];
     public $data = [];
@@ -19,9 +21,9 @@ class ChartDisplay extends Component
     public $xAxis;
     public $yAxis;
     public $selectedCategories = [];
-
     public $savedCharts = [];
 
+    // Mount method remains the same but adds bubble chart type handling
     public function mount($chartType = null, $headers = [], $data = [])
     {
         $this->chartType = $chartType ?? 'bar';
@@ -29,166 +31,244 @@ class ChartDisplay extends Component
         $this->data = $data;
         $this->savedCharts = [];
 
-        logger('ChartDisplay mounted', [
-            'chartType' => $this->chartType,
-            'headers' => $this->headers,
-            'data' => $this->data
-        ]);
-
         if (!empty($this->headers) && !empty($this->data)) {
             $this->xAxis = array_key_first($this->headers);
             $this->yAxis = array_key_last($this->headers);
 
             if ($this->chartType === 'radar') {
                 $this->categories = array_map(function($item) {
-                    return $item['A']; // Get Model names
+                    return $item['A'];
                 }, $this->data);
+            }
+
+            if ($this->chartType === 'bubble' && !empty($this->headers)) {
+                // Default to first numeric column for bubble size
+                foreach ($this->headers as $key => $header) {
+                    if ($key !== 'A') {
+                        $this->selectedColumns = [$key];
+                        break;
+                    }
+                }
             }
 
             $this->prepareChartData();
         }
     }
 
-    public function saveChart()
-    {
-        try {
-            $savedChart = SavedChart::create([
-                'title' => $this->chartTitle,
-                'chart_data' => $this->chartData,
-                'user_id' => auth()->id()
-            ]);
-
-            session()->flash('message', 'Chart saved successfully!');
-            return redirect()->route('saved-charts');
-        } catch (\Exception $e) {
-            session()->flash('error', 'Error saving chart: ' . $e->getMessage());
-        }
-    }
-
-
-
-    // Add this new method for saving charts
- 
-    // Add this method to receive chart data from JavaScript
-    public function handleChartData($chartData)
-    {
-        try {
-            SavedChart::create([
-                'title' => $this->chartTitle,
-                'chart_data' => $chartData,
-                'user_id' => auth()->id()
-            ]);
-
-            session()->flash('message', 'Chart saved successfully!');
-            $this->dispatch('chartSaved');
-        } catch (\Exception $e) {
-            session()->flash('error', 'Error saving chart: ' . $e->getMessage());
-        }
-    }
-
-    public function updateChartData()
+    // Updated prepare chart data method to include bubble
+    public function prepareChartData()
     {
         if (empty($this->headers)) {
-            logger()->warning('No headers available for chart data update');
             return;
         }
-    
+
         try {
             switch ($this->chartType) {
-                case 'pie':
-                    $this->preparePieChartData();
+                case 'bubble':
+                    $this->prepareBubbleChartData();
                     break;
-                case 'bar':
-                    if (empty($this->xAxis) || empty($this->yAxis)) {
-                        throw new \Exception('Invalid axis selection.');
-                    }
-                    
-                    $labels = array_column($this->data, $this->xAxis);
-                    $values = array_map(fn($item) => floatval($item[$this->yAxis] ?? 0), $this->data);
-                    
-                    $this->chartData = [
-                        'type' => 'bar',
-                        'data' => [
-                            'labels' => array_values(array_filter($labels)),
-                            'datasets' => [[
-                                'label' => $this->headers[$this->yAxis] ?? 'Dataset',
-                                'data' => array_values(array_filter($values)),
-                                'backgroundColor' => $this->generateColors(count($values)),
-                                'borderColor' => 'rgba(54, 162, 235, 1)',
-                                'borderWidth' => 1
-                            ]]
-                        ],
-                        'options' => [
-                            'responsive' => true,
-                            'scales' => ['y' => ['beginAtZero' => true]]
-                        ]
-                    ];
-                    break;
-                    
                 case 'radar':
                     $this->prepareRadarChartData();
                     break;
-                    
+                case 'pie':
+                    $this->preparePieChartData();
+                    break;
                 case 'gauge':
                     $this->prepareGaugeChartData();
                     break;
+                case 'bar':
+                default:
+                    $this->prepareBarChartData();
+                    break;
             }
-    
+
             if (!empty($this->chartData)) {
                 $this->dispatch('updateChart', $this->chartData);
-                logger()->info('Chart data updated successfully', ['type' => $this->chartType]);
             }
         } catch (\Exception $e) {
-            logger()->error('Error updating chart data', [
+            logger()->error('Error preparing chart data', [
                 'error' => $e->getMessage(),
                 'type' => $this->chartType
             ]);
-            session()->flash('error', 'Error updating chart: ' . $e->getMessage());
+            session()->flash('error', 'Error preparing chart: ' . $e->getMessage());
         }
     }
 
-public function deleteChart($index)
+    private function prepareBarChartData()
 {
-    unset($this->savedCharts[$index]);
-    $this->savedCharts = array_values($this->savedCharts);
-
-    $this->dispatchBrowserEvent('chartDeleted', $this->savedCharts);
-}
-
-public function saveChartAndRedirect()
-{
-    try {
-        $this->validate([
-            'chartData' => 'required',
-            'chartType' => 'required',
-        ]);
-
-        // Manually set the chartData and chartType properties
-        $this->chartData = $this->chartData;
-        $this->chartType = $this->chartType;
-
-        // Save the chart (this assumes you have a database or session-based saving logic)
-        $title = ucfirst($this->chartType) . ' Chart';
-        $this->saveChart($this->chartData, $title);
-
-        // Redirect to /project
-        return redirect()->route('project')->with('success', 'Chart saved successfully!');
-    } catch (\Exception $e) {
-        logger()->error('Error saving chart:', ['error' => $e->getMessage()]);
-        session()->flash('error', 'An error occurred while saving the chart. Please try again.');
+    if (empty($this->xAxis) || empty($this->yAxis)) {
+        session()->flash('error', 'Please select both X and Y axes.');
+        return;
     }
+
+    $labels = [];
+    $values = [];
+
+    foreach ($this->data as $row) {
+        $label = $row[$this->xAxis] ?? null;
+        $value = floatval($row[$this->yAxis] ?? 0);
+
+        if ($label !== null) {
+            $labels[] = $label;
+            $values[] = $value;
+        }
+    }
+
+    // Filter out empty values
+    $labels = array_values(array_filter($labels));
+    $values = array_values(array_filter($values, fn($value) => $value !== null));
+
+    $backgroundColors = $this->generateColors(count($values));
+    $borderColors = array_map(fn($color) => str_replace('0.2', '1', $color), $backgroundColors);
+
+    $this->chartData = [
+        'type' => 'bar',
+        'data' => [
+            'labels' => $labels,
+            'datasets' => [
+                [
+                    'label' => $this->headers[$this->yAxis] ?? 'Dataset',
+                    'data' => $values,
+                    'backgroundColor' => $backgroundColors,
+                    'borderColor' => $borderColors,
+                    'borderWidth' => 1
+                ]
+            ]
+        ],
+        'options' => [
+            'responsive' => true,
+            'maintainAspectRatio' => false,
+            'scales' => [
+                'y' => [
+                    'beginAtZero' => true,
+                    'grid' => [
+                        'display' => true
+                    ]
+                ],
+                'x' => [
+                    'grid' => [
+                        'display' => false
+                    ]
+                ]
+            ],
+            'plugins' => [
+                'legend' => [
+                    'position' => 'top'
+                ],
+                'title' => [
+                    'display' => false
+                ]
+            ]
+        ]
+    ];
+
+    $this->dispatch('updateChart', $this->chartData);
 }
 
+// Add these methods to handle axis updates
+public function updatedXAxis()
+{
+    $this->prepareBarChartData();
+}
+
+public function updatedYAxis()
+{
+    $this->prepareBarChartData();
+}
+    // Updated bubble chart data preparation
+    private function prepareBubbleChartData()
+    {
+        if (empty($this->selectedColumns)) {
+            return;
+        }
+
+        $columnKey = is_array($this->selectedColumns) ? $this->selectedColumns[0] : $this->selectedColumns;
+        $bubbleData = [];
+        $maxValue = 0;
+
+        foreach ($this->data as $row) {
+            $value = floatval($row[$columnKey] ?? 0);
+            if ($value > $maxValue) {
+                $maxValue = $value;
+            }
+        }
+
+        foreach ($this->data as $index => $row) {
+            $label = $row['A'] ?? 'Unknown';
+            $value = floatval($row[$columnKey] ?? 0);
+            
+            if ($value > 0) {
+                $bubbleData[] = [
+                    'x' => rand(20, 80) / 100, // Random x between 0.2 and 0.8
+                    'y' => $value,
+                    'r' => 5 + (($value / $maxValue) * 20), // Radius between 5 and 25
+                    'label' => $label,
+                    'value' => $value
+                ];
+            }
+        }
+
+        $this->chartData = [
+            'type' => 'bubble',
+            'data' => [
+                'datasets' => [[
+                    'label' => $this->headers[$columnKey] ?? 'Dataset',
+                    'data' => $bubbleData,
+                    'backgroundColor' => array_map(function() {
+                        return "hsla(" . rand(0, 360) . ", 70%, 50%, 0.6)";
+                    }, $bubbleData),
+                    'borderColor' => array_map(function() {
+                        return "hsla(" . rand(0, 360) . ", 70%, 50%, 1)";
+                    }, $bubbleData)
+                ]]
+            ],
+            'options' => [
+                'responsive' => true,
+                'maintainAspectRatio' => false,
+                'scales' => [
+                    'x' => [
+                        'min' => 0,
+                        'max' => 1,
+                        'grid' => ['display' => true],
+                        'ticks' => [
+                            'callback' => "function(value) { return value.toFixed(1); }"
+                        ]
+                    ],
+                    'y' => [
+                        'beginAtZero' => true,
+                        'grid' => ['display' => true]
+                    ]
+                ],
+                'plugins' => [
+                    'tooltip' => [
+                        'callbacks' => [
+                            'label' => "function(context) { return context.raw.label + ': ' + context.raw.value; }"
+                        ]
+                    ],
+                    'legend' => ['display' => false]
+                ]
+            ]
+        ];
+    }
+
+    // Add updatedSelectedColumns method to handle bubble chart updates
     public function updatedSelectedColumns($value)
     {
         logger()->debug('Selected column updated', ['value' => $value]);
 
-        if ($this->chartType === 'pie') {
-            $this->preparePieChartData();
-        } elseif ($this->chartType === 'gauge') {
-            $this->prepareGaugeChartData();
+        switch ($this->chartType) {
+            case 'bubble':
+                $this->prepareBubbleChartData();
+                break;
+            case 'pie':
+                $this->preparePieChartData();
+                break;
+            case 'gauge':
+                $this->prepareGaugeChartData();
+                break;
         }
     }
+
 
     public function updatedSelectedMetrics()
     {
@@ -406,58 +486,6 @@ public function saveChartAndRedirect()
         $this->dispatch('updateChart', $this->chartData);
     }
 
-    public function prepareChartData()
-    {
-        switch ($this->chartType) {
-            case 'radar':
-                $this->prepareRadarChartData();
-                break;
-            case 'pie':
-                $this->preparePieChartData();
-                break;
-            case 'gauge':
-                $this->prepareGaugeChartData();
-                break;
-            default:
-                if (empty($this->xAxis) || empty($this->yAxis)) {
-                    session()->flash('error', 'Invalid axis selection.');
-                    return;
-                }
-            
-                $labels = array_map(fn($item) => $item[$this->xAxis] ?? null, $this->data);
-                $values = array_map(fn($item) => (int) $item[$this->yAxis] ?? 0, $this->data);
-            
-                $labels = array_filter($labels);
-                $values = array_filter($values, fn($value) => $value !== null);
-            
-                $backgroundColors = $this->generateColors(count($values));
-                $borderColors = array_map(fn($color) => str_replace('0.2', '1', $color), $backgroundColors);
-            
-                $this->chartData = [
-                    'type' => $this->chartType,
-                    'data' => [
-                        'labels' => array_values($labels),
-                        'datasets' => [
-                            [
-                                'label' => $this->headers[$this->yAxis] ?? 'Dataset',
-                                'data' => array_values($values),
-                                'backgroundColor' => $backgroundColors,
-                                'borderColor' => $borderColors,
-                                'borderWidth' => 1,
-                            ],
-                        ],
-                    ],
-                    'options' => [
-                        'responsive' => true,
-                        'scales' => [
-                            'y' => ['beginAtZero' => true],
-                        ],
-                    ],
-                ];
-                logger()->info('Bar Chart data prepared.', $this->chartData);
-                $this->dispatch('updateChart', $this->chartData);
-        }
-    }
 
     private function generateColors($count)
     {
