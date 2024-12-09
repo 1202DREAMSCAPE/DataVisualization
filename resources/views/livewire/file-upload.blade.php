@@ -1,4 +1,4 @@
-<div x-data="{ isSticky: true }" class="p-6 bg-white rounded-lg shadow">
+<div class="p-6 bg-white rounded-lg shadow">
     @if (!$filename)
         <!-- File Upload Section -->
         <div
@@ -13,83 +13,86 @@
         </div>
 
         @error('file')
-        <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
+        <p class="text-red-500 text-sm mt-2 text-center">{{ $message }}</p>
         @enderror
-    @else
-        <!-- File Name and Preview -->
-        <div class="border border-gray-300 rounded-lg p-4">
-            <!-- Sticky Header Toggle -->
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center space-x-2">
-                    <label for="sticky-toggle" class="text-sm font-medium text-gray-700">
-                        Sticky Headers
-                    </label>
-                    <input
-                        id="sticky-toggle"
-                        type="checkbox"
-                        x-model="isSticky"
-                        class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                </div>
-            </div>
 
-            <!-- File Name Section -->
-            <div class="flex items-center mb-4">
-                <input
-                    type="text"
-                    value="{{ $filename }}"
-                    readonly
-                    class="w-full border border-gray-300 rounded-l-lg px-4 py-2 bg-gray-100 text-sm font-medium"
-                />
-            <button
-                wire:click="proceedToCleaning"
-                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-r-lg flex items-center"
-            >
-                <span>→</span>
+        <!-- Instructions Section -->
+        <div class="mt-4 text-center">
+            <h3 class="text-gray-700 font-semibold text-lg">How to Use:</h3>
+            <ol class="text-sm text-gray-600 mt-2 space-y-2">
+                <li>1. Click on the upload area to upload.</li>
+                <li>2. Only CSV or XLSX files are supported for preview and visualization.</li>
+                <li>3. After uploading, preview your data and start the visualization process.</li>
+            </ol>
+        </div>
+    @else
+        <!-- File Preview Section -->
+        <div class="border border-gray-300 rounded-lg p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold">
+                    Previewing File: <span class="text-blue-500">{{ $filename }}</span>
+                </h2>
+                <!-- Start Visualizing Button -->
+                <button wire:click="openChartSelector"
+                    class="bg-gradient-to-r from-red-400 via-yellow-400 to-blue-500 text-white px-4 py-2 rounded-lg shadow font-semibold">
+                Start Visualizing
             </button>
 
             </div>
 
-            <!-- Scrollable Preview Section -->
-            <div class="overflow-y-auto max-h-64 border border-gray-300 rounded-lg p-4 bg-gray-50">
-                @if ($previewData)
-                    <table class="w-full text-sm text-left">
-                        <!-- Table Headers -->
+            @if (!empty($headers) && !empty($previewData))
+                <!-- Table Preview with Horizontal and Vertical Scroll -->
+                <div class="overflow-x-auto overflow-y-auto max-h-96 border border-gray-300 rounded-lg p-4 bg-gray-50">
+                    <table class="min-w-full text-sm text-left">
                         <thead class="bg-gray-100">
-                            <tr
-                                class="text-gray-700 font-semibold"
-                                :class="{ 'sticky top-0 bg-gray-100 z-10': isSticky }"
-                            >
+                            <tr>
+                                <th class="py-2 px-4 text-gray-700 font-semibold text-center">#</th>
                                 @foreach ($headers as $header)
-                                    <th class="py-2 px-4">{{ $header }}</th>
+                                    <th class="py-2 px-4 text-gray-700 font-semibold">{{ $header }}</th>
                                 @endforeach
                             </tr>
                         </thead>
-                        <!-- Table Rows -->
                         <tbody>
-                            @foreach ($previewData as $row)
-                                <tr class="border-b border-gray-200">
+                            @foreach ($previewData as $index => $row)
+                                <tr>
+                                    <td class="py-2 px-4 text-gray-600 text-center">{{ $loop->iteration }}</td>
                                     @foreach ($row as $cell)
-                                        <td class="py-2 px-4">{{ $cell }}</td>
+                                        <td class="py-2 px-4 text-gray-600">{{ $cell }}</td>
                                     @endforeach
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
-                @else
-                    <p class="text-gray-500 text-sm">No preview available for this file.</p>
-                @endif
-            </div>
+                </div>
+            @else
+                <!-- Fallback if no data is available -->
+                <div class="overflow-y-auto max-h-96 border border-gray-300 rounded-lg p-4 bg-gray-50">
+                    <p class="text-gray-700 text-sm text-center">
+                        No preview data available. Please check the uploaded file.
+                    </p>
+                </div>
+            @endif
         </div>
 
-        <!-- Upload New File Button -->
-        <div class="mt-6 text-center">
+        <!-- Buttons Section -->
+        <div class="mt-6 flex justify-center space-x-4">
             <button
-                wire:click="resetComponent"
-                class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-lg border border-gray-300"
+                wire:click="startDataCleaning"
+                class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow"
+            >
+                Start Data Cleaning
+            </button>
+            <button
+                wire:click="$set('filename', null)"
+                class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-lg border border-gray-300 shadow"
             >
                 Upload a New File
             </button>
         </div>
+    @endif
+
+    <!-- Chart Selector -->
+    @if ($isChartSelectorOpen)
+        <livewire:chart-selector :headers="$headers" :previewData="$previewData" />
     @endif
 </div>
