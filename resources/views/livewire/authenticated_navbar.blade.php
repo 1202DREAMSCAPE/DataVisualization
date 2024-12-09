@@ -11,7 +11,7 @@
             <img src="{{ Storage::url(auth()->user()->profile_picture) }}" 
                  alt="Profile Picture" 
                  class="h-10 w-10 rounded-full border object-cover border-gray-300">
-            <span class="font-dmSerif text-lg bg-gradient-to-r from-indigo-400 via-white to-green-300 bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient bg-clip-text text-transparent">
+            <span class="font-dmSerif font-bold text-lg bg-gradient-to-r from-indigo-400 via-white to-green-300 bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient bg-clip-text text-transparent">
                 {{ auth()->user()->username }}
             </span>
         </div>
@@ -24,23 +24,22 @@
         <!-- Buttons (Hidden in Mobile View) -->
         <div class="hidden md:flex space-x-4">
             <a href="/profile">
-                <button class="relative text-white rounded-lg shadow-lg px-4 py-1 font-dmSerif text-sm md:text-base hover:scale-105 transition-transform bg-gradient-to-r from-indigo-600 via-indigo-200 to-green-500 bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
+                <button class="relative text-white rounded-lg shadow-lg font-bold px-4 py-1 font-dmSerif text-sm md:text-base hover:scale-105 transition-transform bg-gradient-to-r from-[#4c51bf] via-[#3b82f6] to-[#10b981] bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
                     Profile
                 </button>
             </a>
             <a href="/project">
-                <button class="relative text-white rounded-lg shadow-lg px-4 py-1 font-dmSerif text-sm md:text-base hover:scale-105 transition-transform bg-gradient-to-r from-purple-600 via-purple-100 to-red-600 bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
+                <button class="relative text-white rounded-lg shadow-lg font-bold px-4 py-1 font-dmSerif text-sm md:text-base hover:scale-105 transition-transform bg-gradient-to-r from-[#4c51bf] via-[#3b82f6] to-[#10b981] bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
                     Projects
                 </button>
             </a>
-            <a href="/clean">
-                <button class="relative text-white rounded-lg shadow-lg px-4 py-1 font-dmSerif text-sm md:text-base hover:scale-105 transition-transform bg-gradient-to-r from-pink-600 via-purple-100 to-purple-600 bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
+            <a href="/clean-csv/upload">
+                <button class="relative text-white rounded-lg shadow-lg font-bold px-4 py-1 font-dmSerif text-sm md:text-base hover:scale-105 transition-transform bg-gradient-to-r from-[#4c51bf] via-[#3b82f6] to-[#10b981] bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
                     Clean
                 </button>
             </a>
             <a href="{{ route('logout') }}">
-                <!-- You can also animate this if you prefer, but here I left it as is -->
-                <button class="bg-gray-700 text-white px-4 py-1 rounded-lg hover:bg-gray-600 transition font-dmSerif text-sm md:text-base">
+                <button class="bg-white border-darkgray  text-black font-bold px-4 py-1 rounded-lg hover:bg-gray-600 transition font-dmSerif text-sm md:text-base">
                     Log Out
                 </button>
             </a>
@@ -60,15 +59,15 @@
                 x-transition:leave="transition transform ease-in duration-200"
                 x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
                 class="absolute right-0 mt-2 bg-white rounded-lg shadow-lg w-40 py-2 z-50">
-                <a href="/profile" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Edit Profile</a>
-                <a href="/project" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Projects</a>
-                <a href="{{ route('logout') }}" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Log Out</a>
-                <a href="/clean" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Clean</a>
+                <a href="/profile" class="block px-4 py-2 no-underline  text-darkgray hover:bg-gray-100">Edit Profile</a>
+                <a href="/project" class="block px-4 py-2 no-underline text-darkgray hover:bg-gray-100">Projects</a>
+                <a href="/clean-csv/upload" class="block px-4 py-2 no-underline text-darkgray hover:bg-gray-100">Clean</a>
+                <a href="{{ route('logout') }}" class="block px-4 py-2 no-underline text-darkgray hover:bg-gray-100">Log Out</a>
             </div>
         </div>
         @else
         <!-- Log In and Sign Up Buttons (Hidden in Mobile View) -->
-        <div class="hidden md:flex spaceac-x-4">
+        <div class="hidden md:flex space-x-4">
             <a href="/login">
                 <button class="relative text-white rounded-lg shadow-lg px-4 py-1 font-bold font-dmSerif text-sm md:text-base hover:scale-105 transition-transform bg-gradient-to-br from-indigo-600 via-blue-600 to-green-500 bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
                     Log In

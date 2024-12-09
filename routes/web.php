@@ -9,6 +9,7 @@ use App\Http\Controllers\SignUpController;
 use App\Http\Controllers\LoginController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfilePageController;
+use App\Http\Controllers\CsvCleaningController;
 
 // Landing Page
 Route::view('/', 'landing-page')->name('landing-page');
@@ -23,6 +24,15 @@ Route::view('/dashboard', 'dashboard')
 // Dashboard
 Route::view('/signup', 'signup')
     ->name('signup');
+
+// CSV Data Cleaning Routes
+Route::get('/clean-csv/upload', [CsvCleaningController::class, 'showUploadForm'])->name('clean-csv.upload.form');
+Route::post('/clean-csv/upload', [CsvCleaningController::class, 'uploadCsv'])->name('clean-csv.upload');
+Route::get('/clean-csv/preview', [CsvCleaningController::class, 'showPreview'])->name('clean-csv.preview');
+Route::post('/clean-csv/clean', [CsvCleaningController::class, 'cleanCsv'])->name('clean-csv.clean');
+Route::get('/clean-csv/cleaned', [CsvCleaningController::class, 'showCleaned'])->name('clean-csv.cleaned');
+Route::get('/clean-csv/download', [CsvCleaningController::class, 'downloadCleanedCsv'])->name('clean-csv.download');
+
 
 Route::post('/signup', [SignUpController::class, 'store'])->name('signup.store');
 
