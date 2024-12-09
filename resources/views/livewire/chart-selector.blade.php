@@ -17,23 +17,24 @@
         <h2 class="text-xl font-bold text-center mb-6">Select Your Chart</h2>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            @foreach ([
-                'bar' => 'Bar Chart',
-                'pie' => 'Pie Chart',
-                'word-cloud' => 'Word Cloud',
-                'radar' => 'Radar Chart',
-                'gauge' => 'Gauge Chart'
-            ] as $chartType => $label)
-                <div class="flex flex-col items-center">
-                    <button wire:click="selectChart('{{ $chartType }}')"
-                            class="focus:outline-none border-2 p-2 rounded-lg transition
-                                   {{ $selectedChart === $chartType ? 'border-yellow-500 bg-yellow-100' : 'border-gray-300 bg-white' }}">
-                        <img src="/images/place.gif" alt="{{ $label }}" class="w-24 h-24 sm:w-28 sm:h-28 rounded shadow" />
-                        <p class="mt-2 font-semibold text-sm text-center">{{ $label }}</p>
-                    </button>
-                </div>
-            @endforeach
+    @foreach ([
+        'bar' => ['label' => 'Bar Chart', 'image' => '/images/barchart.png'],
+        'pie' => ['label' => 'Pie Chart', 'image' => '/images/piechart.png'],
+        'word-cloud' => ['label' => 'Word Cloud', 'image' => '/images/wordcloud.png'],
+        'radar' => ['label' => 'Radar Chart', 'image' => '/images/radarchart.png'],
+        'gauge' => ['label' => 'Gauge Chart', 'image' => '/images/gaugechart.png']
+    ] as $chartType => $chart)
+        <div class="flex flex-col items-center">
+            <button wire:click="selectChart('{{ $chartType }}')"
+                    class="focus:outline-none border-2 p-2 rounded-lg transition
+                           {{ $selectedChart === $chartType ? 'border-yellow-500 bg-yellow-100' : 'border-gray-300 bg-white' }}">
+                <img src="{{ $chart['image'] }}" alt="{{ $chart['label'] }}" class="w-24 h-24 sm:w-28 sm:h-28 rounded shadow" />
+                <p class="mt-2 font-semibold text-sm text-center">{{ $chart['label'] }}</p>
+            </button>
         </div>
+    @endforeach
+</div>
+
 
         <div class="text-center mt-6">
             <button wire:click="proceed"
