@@ -25,7 +25,7 @@
 <body class="bg-gray-100 text-gray-800">
     
     <!-- Navbar -->
-    <livewire:navbar />
+    <livewire:authenticated_navbar />
 
     <!-- Main Content Area -->
     <div class="container mx-auto p-6">

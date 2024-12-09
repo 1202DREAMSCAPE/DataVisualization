@@ -22,7 +22,7 @@
             </button>
         </a>
         <!-- Sign Up Button -->
-        <a href="/register">
+        <a href="/signup">
             <button class="bg-pink-400 border border-white text-white px-4 py-1 rounded-lg hover:bg-darkgray hover:border-black transition font-dmSerif font-bold text-sm md:text-base">
                 Sign Up
             </button>
