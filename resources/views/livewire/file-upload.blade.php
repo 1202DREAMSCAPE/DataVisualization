@@ -25,24 +25,48 @@
                 <li>3. After uploading, preview your data and start the visualization process.</li>
             </ol>
         </div>
+
+        <!-- Recently Used File Button -->
+        <div class="mt-6 flex justify-center">
+            <button
+            wire:click="uploadRecentlyUsedFile"
+            class="bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded-lg shadow font-semibold"
+            >
+                Open Recently Used File
+            </button>
+        </div>
     @else
         <!-- File Preview Section -->
         <div class="border border-gray-300 rounded-lg p-4">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                <h2 class="text-lg font-bold text-center sm:text-left">
                     Previewing File: <span class="text-blue-500">{{ $filename }}</span>
                 </h2>
                 <!-- Start Visualizing Button -->
                 <button wire:click="openChartSelector"
-                    class="bg-gradient-to-r from-red-400 via-yellow-400 to-blue-500 text-white px-4 py-2 rounded-lg shadow font-semibold">
-                Start Visualizing
-            </button>
-
+                    class="w-full sm:w-auto bg-gradient-to-r from-red-400 via-yellow-400 to-blue-500 text-white px-4 py-2 rounded-lg shadow font-semibold">
+                    Start Visualizing
+                </button>
             </div>
 
             @if (!empty($headers) && !empty($previewData))
-                <!-- Table Preview with Horizontal and Vertical Scroll -->
-                <div class="overflow-x-auto overflow-y-auto max-h-96 border border-gray-300 rounded-lg p-4 bg-gray-50">
+                <!-- Mobile View (Card Layout) -->
+                <div class="block sm:hidden space-y-3">
+                    @foreach ($previewData as $index => $row)
+                        <div class="bg-white rounded-lg border border-gray-200 p-3">
+                            <div class="font-semibold text-gray-700 mb-2 text-sm">Row {{ $loop->iteration }}</div>
+                            @foreach ($headers as $headerIndex => $header)
+                                <div class="flex justify-between py-1.5 border-b border-gray-100 last:border-0 text-sm">
+                                    <span class="text-gray-600 font-medium">{{ $header }}:</span>
+                                    <span class="text-gray-800 ml-4">{{ $row[$headerIndex] }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- Desktop View (Original Table) -->
+                <div class="hidden sm:block overflow-x-auto overflow-y-auto max-h-96 border border-gray-300 rounded-lg p-4 bg-gray-50">
                     <table class="min-w-full text-sm text-left">
                         <thead class="bg-gray-100">
                             <tr>
@@ -75,16 +99,16 @@
         </div>
 
         <!-- Buttons Section -->
-        <div class="mt-6 flex justify-center space-x-4">
+        <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3 sm:space-x-4 sm:gap-0">
             <button
                 wire:click="startDataCleaning"
-                class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow"
+                class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow"
             >
                 Start Data Cleaning
             </button>
             <button
                 wire:click="$set('filename', null)"
-                class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-lg border border-gray-300 shadow"
+                class="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-lg border border-gray-300 shadow"
             >
                 Upload a New File
             </button>

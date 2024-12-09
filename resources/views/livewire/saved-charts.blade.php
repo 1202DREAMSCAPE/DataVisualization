@@ -28,13 +28,6 @@
                        <canvas x-ref="canvas" id="chart-{{ $chart['id'] }}"></canvas>
                    </div>
                    <h3 class="text-lg font-bold text-center mt-4">{{ $chart['title'] }}</h3>
-                   <button type="button"
-                           wire:click="deleteChart({{ $chart['id'] }})"
-                           class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors">
-                       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                       </svg>
-                   </button>
                </div>
            @endforeach
        </div>

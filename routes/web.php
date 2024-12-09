@@ -43,6 +43,11 @@ Route::get('/saved-charts', function () {
     });
 
 
+    Route::delete('/chart/{id}', [ChartCustomizeController::class, 'destroyChart'])->name('chart.delete');
+    
+Route::delete('/delete-chart/{id}', [ChartController::class, 'destroy']);
+
+
     Route::post('/chart/save', [ChartCustomizeController::class, 'saveChart'])
     ->name('chart.save')
     ->middleware('auth');

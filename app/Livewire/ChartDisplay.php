@@ -396,7 +396,7 @@ public function saveChartAndRedirect()
                     'legend' => ['position' => 'top'],
                     'title' => [
                         'display' => true,
-                        'text' => 'Generated Chart'
+                        'text' => ''
                     ]
                 ],
             ],
