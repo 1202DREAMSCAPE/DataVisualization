@@ -11,36 +11,115 @@
                                  if (window.savedChartInstances && window.savedChartInstances[{{ $chart['id'] }}]) {
                                      window.savedChartInstances[{{ $chart['id'] }}].destroy();
                                  }
-
-                                 const chartData = {{ json_encode($chart['data']) }};
-                                 const isGauge = chartData.type === 'gauge';
-
                                  window.savedChartInstances = window.savedChartInstances || [];
-                                 window.savedChartInstances[{{ $chart['id'] }}] = new Chart(ctx, {
-                                     type: isGauge ? 'doughnut' : chartData.type,
-                                     data: chartData.data,
-                                     options: {
-                                         ...chartData.options,
-                                         responsive: true,
-                                         maintainAspectRatio: false,
-                                         ...(isGauge ? {
-                                             cutout: '75%',
-                                             circumference: 180,
-                                             rotation: 270,
-                                             plugins: {
-                                                 tooltip: { enabled: false },
-                                                 legend: { display: false }
-                                             }
-                                         } : {})
-                                     }
-                                 });
 
-                                 if (isGauge) {
-                                     // Add value label
-                                     const value = chartData.data.datasets[0].data[0];
-                                     ctx.font = 'bold 24px Arial';
-                                     ctx.textAlign = 'center';
-                                     ctx.fillText(value + '%', ctx.canvas.width/2, ctx.canvas.height * 0.6);
+                                 const chartType = {{ json_encode($chart['data']['type']) }};
+                                 const chartData = {{ json_encode($chart['data']) }};
+                                 const options = {
+                                     ...chartData.options || {},
+                                     responsive: true,
+                                     maintainAspectRatio: false
+                                 };
+
+                                 switch (chartType) {
+                                     case 'bar':
+                                     case 'line':
+                                     case 'scatter':
+                                         window.savedChartInstances[{{ $chart['id'] }}] = new Chart(ctx, {
+                                             type: chartType,
+                                             data: chartData.data,
+                                             options: options
+                                         });
+                                         break;
+
+                                     case 'pie':
+                                     case 'doughnut':
+                                         window.savedChartInstances[{{ $chart['id'] }}] = new Chart(ctx, {
+                                             type: chartType,
+                                             data: chartData.data,
+                                             options: options
+                                         });
+                                         break;
+
+                                     case 'radar':
+                                         window.savedChartInstances[{{ $chart['id'] }}] = new Chart(ctx, {
+                                             type: 'radar',
+                                             data: chartData.data,
+                                             options: {
+                                                 ...options,
+                                                 plugins: {
+                                                     legend: { position: 'top' },
+                                                     title: { display: true, text: 'Radar Chart' }
+                                                 },
+                                                 scales: {
+                                                     r: {
+                                                         ticks: { beginAtZero: true },
+                                                         angleLines: { display: true },
+                                                         grid: { color: '#e2e8f0' }
+                                                     }
+                                                 }
+                                             }
+                                         });
+                                         break;
+
+                                     case 'bubble':
+                                         window.savedChartInstances[{{ $chart['id'] }}] = new Chart(ctx, {
+                                             type: 'bubble',
+                                             data: chartData.data,
+                                             options: {
+                                                 ...options,
+                                                 plugins: { legend: { display: false } },
+                                                 scales: {
+                                                     x: { grid: { display: true } },
+                                                     y: { beginAtZero: true, grid: { display: true } }
+                                                 }
+                                             }
+                                         });
+                                         break;
+
+                                     case 'gauge':
+                                         const gaugeData = chartData.data;
+                                         window.savedChartInstances[{{ $chart['id'] }}] = new Chart(ctx, {
+                                             type: 'doughnut',
+                                             data: {
+                                                 datasets: [{
+                                                     data: [gaugeData.value, gaugeData.max - gaugeData.value],
+                                                     backgroundColor: [
+                                                         gaugeData.color || 'rgba(75, 192, 192, 0.8)',
+                                                         'rgba(200, 200, 200, 0.2)'
+                                                     ],
+                                                     borderWidth: 0
+                                                 }]
+                                             },
+                                             options: {
+                                                 ...options,
+                                                 cutout: '75%',
+                                                 rotation: 270,
+                                                 circumference: 180,
+                                                 plugins: {
+                                                     legend: { display: false },
+                                                     tooltip: { enabled: false }
+                                                 }
+                                             },
+                                             plugins: [{
+                                                 id: 'gaugeOverlay',
+                                                 afterDraw: (chart) => {
+                                                     const { ctx, width, height } = chart;
+                                                     ctx.save();
+                                                     ctx.textAlign = 'center';
+                                                     ctx.font = 'bold 24px Arial';
+                                                     ctx.fillStyle = '#333';
+                                                     ctx.fillText(`${gaugeData.value}${gaugeData.unit || '%'}`, width / 2, height / 2 - 10);
+                                                     ctx.font = 'bold 16px Arial';
+                                                     ctx.fillText(gaugeData.label, width / 2, height / 2 + 20);
+                                                     ctx.restore();
+                                                 }
+                                             }]
+                                         });
+                                         break;
+
+                                     default:
+                                         console.warn('Unsupported chart type:', chartType);
                                  }
                              });
                          }
@@ -49,7 +128,7 @@
                     <div class="h-[300px]">
                         <canvas x-ref="canvas" id="chart-{{ $chart['id'] }}"></canvas>
                     </div>
-                    <h3 class="text-2xl font-bold text-center mt-6">{{ $chart['title'] }}</h3>
+                    <h3 class="text-lg font-bold text-center mt-4">{{ $chart['title'] }}</h3>
                 </div>
             @endforeach
         </div>

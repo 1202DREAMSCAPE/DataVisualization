@@ -83,7 +83,7 @@
                         </div>
                         @error('selectedColumns') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
-                @elseif ($chartType === 'gauge')
+                 @elseif ($chartType === 'gauge')
                     <div>
                         <label class="block text-gray-700 text-sm font-bold mb-2">Select Metric</label>
                         <div class="flex flex-wrap gap-2">

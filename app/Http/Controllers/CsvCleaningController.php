@@ -318,93 +318,94 @@ class CsvCleaningController extends Controller
     /**
      * Clean the data by removing rows with nulls, non-ASCII characters, duplicates in non-numeric fields, and trimming whitespace.
      */
-    private function cleanData(array $data, int $originalRowCount)
-    {
-        $cleanedData = [];
-        $rowsRemovedDueToNulls = 0;
-        $rowsRemovedDueToNonAscii = 0;
-        $rowsRemovedDueToDuplicates = 0;
-        $whitespaceTrimmed = 0;
+/**
+ * Clean the data by removing rows with nulls, non-ASCII characters, duplicates in non-numeric fields, and trimming whitespace.
+ */
+private function cleanData(array $data, int $originalRowCount)
+{
+    $cleanedData = [];
+    $rowsRemovedDueToNulls = 0;
+    $rowsRemovedDueToNonAscii = 0;
+    $rowsRemovedDueToDuplicates = 0;
+    $whitespaceTrimmed = 0;
 
-        // To track unique combinations based on non-numeric fields
-        $uniqueKeys = [];
+    // To track unique combinations and duplicates
+    $uniqueKeys = [];
+    $duplicateCount = [];
 
-        foreach ($data as $row) {
-            // Check for null or empty values
-            if (in_array(null, $row, true) || in_array('', $row, true)) {
-                $rowsRemovedDueToNulls++;
-                continue; // Remove the row
-            }
-
-            // Check for non-ASCII characters in any cell
-            $hasNonAscii = false;
-            foreach ($row as $cell) {
-                if (is_string($cell) && preg_match('/[^\x00-\x7F]/', $cell)) {
-                    $hasNonAscii = true;
-                    break;
-                }
-            }
-
-            if ($hasNonAscii) {
-                $rowsRemovedDueToNonAscii++;
-                continue; // Remove the row
-            }
-
-            // Trim whitespace from text columns
-            foreach ($row as $key => $value) {
-                if (is_string($value)) {
-                    $trimmed = trim($value);
-                    if ($trimmed !== $value) {
-                        $row[$key] = $trimmed;
-                        $whitespaceTrimmed++;
-                    }
-                }
-            }
-
-            // Generate a unique key based on non-numeric fields
-            $nonNumericValues = [];
-            foreach ($row as $key => $value) {
-                if (!$this->isNumericColumn([$value])) {
-                    $nonNumericValues[$key] = $value;
-                }
-            }
-
-            $serializedKey = serialize($nonNumericValues);
-
-            if (in_array($serializedKey, $uniqueKeys, true)) {
-                $rowsRemovedDueToDuplicates++;
-                continue; // Duplicate found, remove the row
-            }
-
-            $uniqueKeys[] = $serializedKey;
-            $cleanedData[] = $row;
+    foreach ($data as $row) {
+        // Check for null or empty values
+        if (in_array(null, $row, true) || in_array('', $row, true)) {
+            $rowsRemovedDueToNulls++;
+            continue; // Remove the row
         }
 
-        // Calculate modifications percentage
-        $totalFields = $originalRowCount * (count($data[0] ?? []) ?: 1);
-        $modificationsPercentage = $totalFields > 0 ? ($whitespaceTrimmed / $totalFields) * 100 : 0;
+        // Check for non-ASCII characters in any cell
+        $hasNonAscii = false;
+        foreach ($row as $cell) {
+            if (is_string($cell) && preg_match('/[^\x00-\x7F]/', $cell)) {
+                $hasNonAscii = true;
+                break;
+            }
+        }
 
-        // Store modification metrics
-        $this->modificationMetrics = [
-            'whitespace_trimmed' => $whitespaceTrimmed,
-            'modifications_percentage' => round($modificationsPercentage, 2),
-        ];
+        if ($hasNonAscii) {
+            $rowsRemovedDueToNonAscii++;
+            continue; // Remove the row
+        }
 
-        // Calculate total rows removed
-        $totalRowsRemoved = $rowsRemovedDueToNulls + $rowsRemovedDueToNonAscii + $rowsRemovedDueToDuplicates;
+        // Trim whitespace from text columns
+        foreach ($row as $key => $value) {
+            if (is_string($value)) {
+                $trimmed = trim($value);
+                if ($trimmed !== $value) {
+                    $row[$key] = $trimmed;
+                    $whitespaceTrimmed++;
+                }
+            }
+        }
 
-        // Summary is generated separately
-        $this->cleaningSummary = [
-            'rows_removed_due_to_nulls' => $rowsRemovedDueToNulls,
-            'rows_removed_due_to_non_ascii' => $rowsRemovedDueToNonAscii,
-            'rows_removed_due_to_duplicates' => $rowsRemovedDueToDuplicates,
-            'total_rows_removed' => $totalRowsRemoved,
-            'whitespace_trimmed' => $whitespaceTrimmed,
-            'modifications_percentage' => $this->modificationMetrics['modifications_percentage'],
-        ];
+        // Generate a unique key based on the row
+        $serializedKey = serialize($row);
 
-        return $cleanedData;
+        // Track duplicates and retain only one instance
+        if (isset($duplicateCount[$serializedKey])) {
+            $duplicateCount[$serializedKey]++;
+            $rowsRemovedDueToDuplicates++;
+            continue; // Skip additional copies
+        }
+
+        // If not a duplicate, store the unique key
+        $duplicateCount[$serializedKey] = 1;
+        $uniqueKeys[] = $serializedKey;
+        $cleanedData[] = $row;
     }
+
+    // Adjust duplicate count to avoid over-counting
+    $actualDuplicateCount = array_sum($duplicateCount) - count($duplicateCount);
+
+    // Calculate modifications percentage
+    $totalFields = $originalRowCount * (count($data[0] ?? []) ?: 1);
+    $modificationsPercentage = $totalFields > 0 ? ($whitespaceTrimmed / $totalFields) * 100 : 0;
+
+    // Store modification metrics
+    $this->modificationMetrics = [
+        'whitespace_trimmed' => $whitespaceTrimmed,
+        'modifications_percentage' => round($modificationsPercentage, 2),
+    ];
+
+    // Summary
+    $this->cleaningSummary = [
+        'rows_removed_due_to_nulls' => $rowsRemovedDueToNulls,
+        'rows_removed_due_to_non_ascii' => $rowsRemovedDueToNonAscii,
+        'rows_removed_due_to_duplicates' => $actualDuplicateCount,
+        'total_rows_removed' => $rowsRemovedDueToNulls + $rowsRemovedDueToNonAscii + $actualDuplicateCount,
+        'whitespace_trimmed' => $whitespaceTrimmed,
+        'modifications_percentage' => $this->modificationMetrics['modifications_percentage'],
+    ];
+
+    return $cleanedData;
+}
 
     /**
      * Check if a value is numeric.

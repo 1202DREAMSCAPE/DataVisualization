@@ -313,10 +313,14 @@ public function updatedYAxis()
 
     private function prepareGaugeChartData()
     {
+        logger()->debug('Preparing gauge chart data', ['selectedColumn' => $this->selectedColumns]);
+    
         if (empty($this->selectedColumns)) {
+            logger()->debug('No column selected for gauge');
             return;
         }
     
+        // Get values for all models
         $modelValues = [];
         foreach ($this->data as $row) {
             $modelValues[] = [
@@ -325,58 +329,36 @@ public function updatedYAxis()
             ];
         }
     
+        // Sort to find min and max
+        usort($modelValues, fn($a, $b) => $b['value'] - $a['value']);
+        
+        // Calculate average
         $value = !empty($modelValues) 
             ? array_sum(array_column($modelValues, 'value')) / count($modelValues)
             : 0;
         
         $value = round($value, 1);
     
+        // Get min and max models
+        $maxModel = $modelValues[0] ?? ['name' => '', 'value' => 0];
+        $minModel = end($modelValues) ?: ['name' => '', 'value' => 0];
+    
         $this->chartData = [
-            'type' => 'doughnut',
+            'type' => 'gauge',
             'data' => [
-                'datasets' => [[
-                    'data' => [$value, 100 - $value],
-                    'backgroundColor' => [
-                        $this->getGaugeColor($value),
-                        'rgba(200, 200, 200, 0.2)'
-                    ],
-                    'borderWidth' => 0,
-                    'circumference' => 180,
-                    'rotation' => 270
-                ]],
-                'labels' => ['Value', 'Remaining']
-            ],
-            'options' => [
-                'responsive' => true,
-                'maintainAspectRatio' => false,
-                'cutout' => '75%',
-                'plugins' => [
-                    'datalabels' => [
-                        'display' => true,
-                        'formatter' => "function(value, context) {
-                            if (context.dataIndex === 0) {
-                                return value + '%';
-                            }
-                            return '';
-                        }",
-                        'color' => '#000',
-                        'align' => 'center',
-                        'anchor' => 'center',
-                        'font' => [
-                            'size' => 24,
-                            'weight' => 'bold'
-                        ]
-                    ],
-                    'tooltip' => [
-                        'enabled' => false
-                    ],
-                    'legend' => [
-                        'display' => false
-                    ]
-                ]
+                'value' => $value,
+                'max' => 100,
+                'label' => $this->headers[$this->selectedColumns] ?? 'Gauge',
+                'color' => $this->getGaugeColor($value),
+                'unit' => '%',
+                'totalModels' => count($modelValues),
+                'modelValues' => $modelValues,
+                'maxModel' => $maxModel,
+                'minModel' => $minModel
             ]
         ];
     
+        logger()->debug('Gauge chart data prepared', ['chartData' => $this->chartData]);
         $this->dispatch('updateChart', $this->chartData);
     }
     private function getGaugeColor($value)

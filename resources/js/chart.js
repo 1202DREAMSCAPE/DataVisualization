@@ -4,12 +4,11 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 Chart.register(ChartDataLabels);
 
 // Add to your chart.js file
-
-function createBubbleChart(chartData) {
+function createOrUpdateBubbleChart(chartData) {
     const canvas = document.getElementById('bubbleChart');
     if (!canvas || !chartData.data) return;
 
-    // Clear any existing chart
+    // Clear any existing chart instance
     if (window.currentChartInstance) {
         window.currentChartInstance.destroy();
     }
@@ -70,6 +69,18 @@ function createBubbleChart(chartData) {
                             return `${context.raw.label}: ${context.raw.value}`;
                         }
                     }
+                },
+                datalabels: {
+                    color: 'black',
+                    font: {
+                        weight: 'bold'
+                    },
+                    formatter: function(value, context) {
+                        return context.chart.data.datasets[0].data[context.dataIndex].label;
+                    },
+                    anchor: 'end',
+                    align: 'top',
+                    offset: 5
                 }
             }
         }
@@ -77,6 +88,9 @@ function createBubbleChart(chartData) {
 
     window.currentChartInstance = new Chart(canvas, config);
 }
+
+
+
 // Event Listener for Chart Saved
 window.addEventListener('chartSaved', (event) => {
     console.log('Charts saved:', event.detail);
@@ -138,6 +152,9 @@ window.addEventListener('updateChart', (event) => {
             break;
         case 'gauge':
             createOrUpdateGaugeChart(chartData);
+            break;
+        case 'bubble':  // Add this case to handle bubble charts
+            createBubbleChart(chartData);
             break;
         default:
             createOrUpdateBarOrLineChart(chartData);

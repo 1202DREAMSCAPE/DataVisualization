@@ -18,7 +18,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 </head>
 <body class="bg-lightgray text-darkgray">
-    <livewire:navbar />
+    <livewire:authenticated_navbar />
 
     <div class="container mx-auto p-4">
         
