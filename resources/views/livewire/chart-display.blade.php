@@ -53,52 +53,42 @@
                             @error('selectedCategories') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
-                @elseif ($chartType === 'bubble')
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Select Size Metric</label>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach ($headers as $key => $label)
-                                @if ($key !== 'A')
-                                    <label class="inline-flex items-center bg-gray-100 rounded-md px-2 py-1">
-                                        <input type="radio" wire:model.live="selectedColumns" value="{{ $key }}" class="form-radio mr-2">
-                                        <span>{{ $label }}</span>
-                                    </label>
-                                @endif
-                            @endforeach
-                        </div>
-                        @error('selectedColumns') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                @elseif ($chartType === 'pie')
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Select Data to Show</label>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach ($headers as $key => $label)
-                                @if ($key !== 'A')
-                                    <label class="inline-flex items-center bg-gray-100 rounded-md px-2 py-1">
-                                        <input type="checkbox" wire:model.live="selectedColumns" value="{{ $key }}" class="form-checkbox mr-2">
-                                        <span>{{ $label }}</span>
-                                    </label>
-                                @endif
-                            @endforeach
-                        </div>
-                        @error('selectedColumns') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                 @elseif ($chartType === 'gauge')
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Select Metric</label>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach ($headers as $key => $label)
-                                @if ($key !== 'A')
-                                    <label class="inline-flex items-center bg-gray-100 rounded-md px-2 py-1">
-                                        <input type="radio" wire:model.live="selectedColumns" value="{{ $key }}" class="form-radio mr-2" name="gauge-metric">
-                                        <span>{{ $label }}</span>
-                                    </label>
-                                @endif
-                            @endforeach
-                        </div>
-                        @error('selectedColumns') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                @elseif ($chartType === 'bar')
+                    
+                    @elseif ($chartType === 'line') <!-- Line Chart Controls -->
+<div class="space-y-6">
+    <!-- X-Axis Selection -->
+    <div>
+        <label class="block text-gray-700 text-sm font-bold mb-2">Select X-Axis</label>
+        <select wire:model.live="xAxis" class="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            @foreach ($headers as $key => $label)
+                <option value="{{ $key }}">{{ $label }}</option>
+            @endforeach
+        </select>
+        @error('xAxis') 
+        <p class="text-red-500 text-xs mt-1">{{ $message }}</p> 
+        @enderror
+    </div>
+
+    <!-- Y-Axis Metrics Selection -->
+    <div>
+        <label class="block text-gray-700 text-sm font-bold mb-2">Select Metrics for Y-Axis</label>
+        <div class="space-y-2">
+            @foreach ($headers as $key => $label)
+                @if ($key !== $xAxis)
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" wire:model.live="selectedMetrics" value="{{ $key }}" class="form-checkbox text-blue-500 focus:ring-blue-500">
+                        <span>{{ $label }}</span>
+                    </label>
+                @endif
+            @endforeach
+        </div>
+        @error('selectedMetrics') 
+        <p class="text-red-500 text-xs mt-1">{{ $message }}</p> 
+        @enderror
+    </div>
+</div>
+
+            @elseif ($chartType === 'bar')
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="xAxis" class="block text-sm font-medium text-gray-700">X-Axis</label>
@@ -118,6 +108,38 @@
                                 @endforeach
                             </select>
                         </div>
+                    </div>
+                @elseif ($chartType === 'pie')
+                    <!-- Pie Chart Controls -->
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Select Data to Show</label>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($headers as $key => $label)
+                                @if ($key !== 'A')
+                                    <label class="inline-flex items-center bg-gray-100 rounded-md px-2 py-1">
+                                        <input type="checkbox" wire:model.live="selectedColumns" value="{{ $key }}" class="form-checkbox mr-2">
+                                        <span>{{ $label }}</span>
+                                    </label>
+                                @endif
+                            @endforeach
+                        </div>
+                        @error('selectedColumns') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                 @elseif ($chartType === 'gauge')
+                    <!-- Gauge Chart Controls -->
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Select Metric</label>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($headers as $key => $label)
+                                @if ($key !== 'A')
+                                    <label class="inline-flex items-center bg-gray-100 rounded-md px-2 py-1">
+                                        <input type="radio" wire:model.live="selectedColumns" value="{{ $key }}" class="form-radio mr-2" name="gauge-metric">
+                                        <span>{{ $label }}</span>
+                                    </label>
+                                @endif
+                            @endforeach
+                        </div>
+                        @error('selectedColumns') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 @endif
 
@@ -141,6 +163,9 @@
             </div>
         </div>
     </div>
+</div>
+
+
 
     <script>
         document.addEventListener('livewire:initialized', () => {

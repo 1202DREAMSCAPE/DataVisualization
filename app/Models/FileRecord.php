@@ -12,4 +12,8 @@ class FileRecord extends Model
         'headers' => 'array',
         'preview_data' => 'array',
     ];
+
+   public function savedCharts() {
+        return $this->hasMany(SavedChart::class);
+    }
 }

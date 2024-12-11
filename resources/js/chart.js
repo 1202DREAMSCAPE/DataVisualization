@@ -1,6 +1,7 @@
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
+
 Chart.register(ChartDataLabels);
 
 // Add to your chart.js file
@@ -153,13 +154,67 @@ window.addEventListener('updateChart', (event) => {
         case 'gauge':
             createOrUpdateGaugeChart(chartData);
             break;
-        case 'bubble':  // Add this case to handle bubble charts
-            createBubbleChart(chartData);
+        case 'line':  // Add this case to handle bubble charts
+            createOrUpdateLineChart(chartData);
             break;
         default:
             createOrUpdateBarOrLineChart(chartData);
     }
 });
+
+function createOrUpdateLineChart(chartData) {
+    const canvas = document.getElementById('chartCanvas');
+    if (!canvas) {
+        console.error('Canvas element not found.');
+        return;
+    }
+
+    // Validate the data format
+    if (!Array.isArray(chartData.data) || chartData.data.some(item => !('x' in item && 'y' in item))) {
+        console.error('Invalid data format for Line Chart. Expected [{x, y}, ...]');
+        return;
+    }
+
+    // Clear any existing chart instance
+    if (window.currentChartInstance) {
+        window.currentChartInstance.destroy();
+    }
+
+    // Configure the line chart
+const lineConfig = {
+    type: 'line',
+    data: {
+        datasets: [{
+            label: chartData.label || 'Line Chart',
+            data: chartData.data || [],
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+                callbacks: {
+                    label: (context) => `${context.label}: ${context.raw}`,
+                }
+            }
+        },
+        scales: {
+            x: { title: { display: true, text: 'X-Axis' } },
+            y: { title: { display: true, text: 'Y-Axis' } },
+        }
+    }
+};
+
+
+    // Create or update the chart
+    window.currentChartInstance = new Chart(canvas.getContext('2d'), config);
+}
+
+
 
 // Helper Functions for Specific Chart Types
 function createOrUpdateBarOrLineChart(chartData) {

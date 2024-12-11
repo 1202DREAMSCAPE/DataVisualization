@@ -30,7 +30,12 @@
             </a>
             <a href="/project">
                 <button class="relative text-white rounded-lg shadow-lg font-bold px-4 py-1 font-dmSerif text-sm md:text-base hover:scale-105 transition-transform bg-gradient-to-r from-[#4c51bf] via-[#3b82f6] to-[#10b981] bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
-                    Projects
+                    Upload New
+                </button>
+            </a>
+            <a href="/saved-charts">
+                <button class="relative text-white rounded-lg shadow-lg font-bold px-4 py-1 font-dmSerif text-sm md:text-base hover:scale-105 transition-transform bg-gradient-to-r from-[#4c51bf] via-[#3b82f6] to-[#10b981] bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
+                    Charts
                 </button>
             </a>
             <a href="/clean-csv/upload">
@@ -60,7 +65,8 @@
                 x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
                 class="absolute right-0 mt-2 bg-white rounded-lg shadow-lg w-40 py-2 z-50">
                 <a href="/profile" class="block px-4 py-2 no-underline  text-darkgray hover:bg-gray-100">Edit Profile</a>
-                <a href="/project" class="block px-4 py-2 no-underline text-darkgray hover:bg-gray-100">Projects</a>
+                <a href="/project" class="block px-4 py-2 no-underline text-darkgray hover:bg-gray-100">Upload New</a>
+                <a href="/saved-charts" class="block px-4 py-2 no-underline text-darkgray hover:bg-gray-100">Charts</a>
                 <a href="/clean-csv/upload" class="block px-4 py-2 no-underline text-darkgray hover:bg-gray-100">Clean</a>
                 <a href="{{ route('logout') }}" class="block px-4 py-2 no-underline text-darkgray hover:bg-gray-100">Log Out</a>
             </div>

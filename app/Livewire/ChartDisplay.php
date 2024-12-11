@@ -23,6 +23,7 @@ class ChartDisplay extends Component
     public $selectedCategories = [];
     public $savedCharts = [];
 
+
     // Mount method remains the same but adds bubble chart type handling
     public function mount($chartType = null, $headers = [], $data = [])
     {
@@ -41,15 +42,6 @@ class ChartDisplay extends Component
                 }, $this->data);
             }
 
-            if ($this->chartType === 'bubble' && !empty($this->headers)) {
-                // Default to first numeric column for bubble size
-                foreach ($this->headers as $key => $header) {
-                    if ($key !== 'A') {
-                        $this->selectedColumns = [$key];
-                        break;
-                    }
-                }
-            }
 
             $this->prepareChartData();
         }
@@ -76,6 +68,9 @@ class ChartDisplay extends Component
                 case 'gauge':
                     $this->prepareGaugeChartData();
                     break;
+                case 'line':  // Add lollipop chart case
+                    $this->prepareLineChartData();
+                    break;
                 case 'bar':
                 default:
                     $this->prepareBarChartData();
@@ -94,8 +89,92 @@ class ChartDisplay extends Component
         }
     }
 
-    // Update the saveChart method in ChartDisplay.php
-public function saveChart()
+    private function prepareLineChartData()
+    {
+        if (empty($this->xAxis) || empty($this->selectedMetrics)) {
+            session()->flash('error', 'Please select both X-Axis and at least one metric for the line chart.');
+            return;
+        }
+    
+        $labels = [];
+        foreach ($this->data as $row) {
+            $label = $row[$this->xAxis] ?? null;
+            if ($label !== null) {
+                $labels[] = $label;
+            }
+        }
+    
+        $labels = array_values(array_filter($labels, fn($label) => !is_null($label) && $label !== ''));
+    
+        if (empty($labels)) {
+            session()->flash('error', 'No valid data available for the line chart.');
+            return;
+        }
+    
+        $datasets = [];
+        foreach ($this->selectedMetrics as $metricKey) {
+            $dataPoints = [];
+    
+            foreach ($this->data as $row) {
+                $value = floatval($row[$metricKey] ?? 0);
+                $dataPoints[] = $value;
+            }
+    
+            $datasets[] = [
+                'label' => $this->headers[$metricKey] ?? 'Dataset',
+                'data' => $dataPoints,
+                'borderColor' => $this->generateRandomColor(),
+                'backgroundColor' => $this->generateRandomColor(0.2),
+                'borderWidth' => 2,
+                'pointRadius' => 3,
+                'fill' => false,
+                'lineTension' => 0.1
+            ];
+        }
+    
+        $this->chartData = [
+            'type' => 'line',
+            'data' => [
+                'labels' => $labels,
+                'datasets' => $datasets
+            ],
+            'options' => [
+                'responsive' => true,
+                'maintainAspectRatio' => false,
+                'scales' => [
+                    'x' => [
+                        'type' => 'category',
+                        'labels' => $labels,
+                        'grid' => ['display' => false],
+                    ],
+                    'y' => [
+                        'beginAtZero' => true,
+                        'grid' => ['color' => '#e2e8f0'],
+                    ]
+                ],
+                'plugins' => [
+                    'legend' => ['position' => 'top'],
+                    'title' => [
+                        'display' => false,
+                        'text' => $this->chartTitle ?: ucfirst($this->chartType) . ' Chart',
+                    ],
+                    'tooltip' => [
+                        'callbacks' => [
+                            'label' => function($context) {
+                                return $context['label'] . ': ' . $context['raw'];
+                            }
+                        ]
+                    ]
+                ]
+            ]
+        ];
+    
+        $this->dispatch('updateChart', $this->chartData);
+    }
+    
+
+
+    public function saveChart()
 {
     try {
         // Validate required data
@@ -119,6 +198,7 @@ public function saveChart()
         session()->flash('error', 'Error saving chart: ' . $e->getMessage());
     }
 }
+
 
     private function prepareBarChartData()
 {
@@ -182,7 +262,8 @@ public function saveChart()
                     'position' => 'top'
                 ],
                 'title' => [
-                    'display' => false
+                    'display' => false,
+                    'text' => $this->chartTitle ?: ucfirst($this->chartType) . ' Chart',
                 ]
             ]
         ]
@@ -202,80 +283,6 @@ public function updatedYAxis()
     $this->prepareBarChartData();
 }
     // Updated bubble chart data preparation
-    private function prepareBubbleChartData()
-    {
-        if (empty($this->selectedColumns)) {
-            return;
-        }
-
-        $columnKey = is_array($this->selectedColumns) ? $this->selectedColumns[0] : $this->selectedColumns;
-        $bubbleData = [];
-        $maxValue = 0;
-
-        foreach ($this->data as $row) {
-            $value = floatval($row[$columnKey] ?? 0);
-            if ($value > $maxValue) {
-                $maxValue = $value;
-            }
-        }
-
-        foreach ($this->data as $index => $row) {
-            $label = $row['A'] ?? 'Unknown';
-            $value = floatval($row[$columnKey] ?? 0);
-            
-            if ($value > 0) {
-                $bubbleData[] = [
-                    'x' => rand(20, 80) / 100, // Random x between 0.2 and 0.8
-                    'y' => $value,
-                    'r' => 5 + (($value / $maxValue) * 20), // Radius between 5 and 25
-                    'label' => $label,
-                    'value' => $value
-                ];
-            }
-        }
-
-        $this->chartData = [
-            'type' => 'bubble',
-            'data' => [
-                'datasets' => [[
-                    'label' => $this->headers[$columnKey] ?? 'Dataset',
-                    'data' => $bubbleData,
-                    'backgroundColor' => array_map(function() {
-                        return "hsla(" . rand(0, 360) . ", 70%, 50%, 0.6)";
-                    }, $bubbleData),
-                    'borderColor' => array_map(function() {
-                        return "hsla(" . rand(0, 360) . ", 70%, 50%, 1)";
-                    }, $bubbleData)
-                ]]
-            ],
-            'options' => [
-                'responsive' => true,
-                'maintainAspectRatio' => false,
-                'scales' => [
-                    'x' => [
-                        'min' => 0,
-                        'max' => 1,
-                        'grid' => ['display' => true],
-                        'ticks' => [
-                            'callback' => "function(value) { return value.toFixed(1); }"
-                        ]
-                    ],
-                    'y' => [
-                        'beginAtZero' => true,
-                        'grid' => ['display' => true]
-                    ]
-                ],
-                'plugins' => [
-                    'tooltip' => [
-                        'callbacks' => [
-                            'label' => "function(context) { return context.raw.label + ': ' + context.raw.value; }"
-                        ]
-                    ],
-                    'legend' => ['display' => false]
-                ]
-            ]
-        ];
-    }
 
     // Add updatedSelectedColumns method to handle bubble chart updates
     public function updatedSelectedColumns($value)
@@ -426,9 +433,8 @@ public function updatedYAxis()
                         'position' => 'top',
                     ],
                     'title' => [
-                        'display' => true,
-                        'text' => 'Radar Chart Comparison'
-                    ]
+                        'display' => false,
+                        ]
                 ],
                 'scales' => [
                     'r' => [
@@ -501,8 +507,8 @@ public function updatedYAxis()
                 'plugins' => [
                     'legend' => ['position' => 'top'],
                     'title' => [
-                        'display' => true,
-                        'text' => ''
+                        'display' => false,
+                        'text' => $this->chartTitle ?: ucfirst($this->chartType) . ' Chart',
                     ]
                 ],
             ],

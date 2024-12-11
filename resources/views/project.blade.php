@@ -12,11 +12,19 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <style>
+    .text-wrap {
+    white-space: normal; /* Allows the text to wrap */
+    word-wrap: break-word; /* Ensures words break to prevent overflow */
+    overflow-wrap: break-word; /* Allows unbreakable words to be broken */
+}
+
+    </style>
 </head>
 <body class="flex h-screen bg-cover bg-center" style="background-image: url('{{ asset('images/blobgif.gif') }}')" >
-
-<!--style="background-image: url('{{ asset('images/gifbg.gif') }}')"-->
+<div class="table-responsive"></div>    
     <!-- Main Content -->
     <div class="flex-1">
         <!-- Navbar -->
@@ -24,6 +32,7 @@
         <!-- Main Content Area -->
         <main class="p-6">
                 <!-- Call Livewire FileUpload Component -->
+                 <livewire:gemini-modal/> 
                 <livewire:file-upload />
                 <livewire:chart-selector />
 

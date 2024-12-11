@@ -75,6 +75,7 @@ class SavedCharts extends Component
         $chart->title = $chartData['title'] ?? 'Untitled Chart';
         $chart->chart_data = json_encode($chartData['data']);
         $chart->user_id = auth()->id(); // Optional if user authentication is implemented
+        $chart->file_record_id = $chartData['filename'];
         $chart->save();
 
         // Reload charts to include the newly saved chart

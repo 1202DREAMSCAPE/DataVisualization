@@ -7,6 +7,7 @@ use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\FileRecord;
+use App\Services\GoogleGeminiAgentService;
 
 
 class FileUpload extends Component
@@ -18,26 +19,33 @@ class FileUpload extends Component
     public $headers = [];
     public $previewData = [];
     public $isChartSelectorOpen = false;
+    public $generatedFilePath; // Add this property to avoid the undefined property error
+    public $prompt; // Add this to manage the input prompt
 
-    protected $listeners = ['closeChartSelector' => 'closeChartSelector'];
+    protected $listeners = ['closeChartSelector' => 'closeChartSelector', 'openGeminiModal' => 'show'];
+    public $isModalOpen = false; // To control modal visibility
 
+    public function show()
+    {
+        $this->isModalOpen = true; // Open the modal
+    }
 
     public function updatedFile()
     {
         logger('File updated', ['file' => $this->file]);
-    
+
         $this->validate([
             'file' => 'required|mimes:csv,xlsx|max:10240',
         ]);
-    
+
         $this->filename = $this->file->getClientOriginalName();
         logger('File validated and uploaded', ['filename' => $this->filename]);
-    
+
         $path = $this->file->store('temp');
         logger('File stored temporarily', ['path' => $path]);
-    
+
         $this->loadExcelData($path);
-    
+
         // Save file metadata to the database
         FileRecord::create([
             'filename' => $this->filename,
@@ -45,9 +53,9 @@ class FileUpload extends Component
             'headers' => $this->headers,
             'preview_data' => $this->previewData,
         ]);
-    
+
         logger('File metadata saved to database.');
-    
+
         // Save recently used file in session
         session([
             'recently_used_file' => [
@@ -56,14 +64,61 @@ class FileUpload extends Component
                 'previewData' => $this->previewData,
             ],
         ]);
-    
+
         logger('Recently used file saved to session.');
     }
-    
+
+        public function openModal()
+    {
+        $this->dispatch('openGeminiModal'); // Emit an event to open the modal
+    }
+
+
+    public function generateCsvFile()
+    {
+        try {
+            logger('Generating CSV file via Gemini model.');
+
+            $geminiService = new GoogleGeminiAgentService();
+
+            // Ensure that $this->prompt is set
+            if (empty($this->prompt)) {
+                session()->flash('error', 'The prompt is required to generate a CSV file.');
+                return;
+            }
+
+            // Pass the prompt to the service method
+            $generatedData = $geminiService->generateCsvData($this->prompt);
+
+            // Convert the data into CSV format
+            $csvContent = fopen('php://temp', 'r+');
+            foreach ($generatedData as $row) {
+                fputcsv($csvContent, $row);
+            }
+            rewind($csvContent);
+
+            $directoryPath = storage_path('app/generated');
+            if (!is_dir($directoryPath)) {
+                mkdir($directoryPath, 0755, true);
+            }
+
+            $csvFileName = 'generated_file_' . time() . '.csv';
+            $filePath = 'generated/' . $csvFileName;
+
+            Storage::disk('local')->put($filePath, stream_get_contents($csvContent));
+            fclose($csvContent);
+
+            $this->generatedFilePath = $filePath;
+
+            session()->flash('success', "CSV file generated successfully! Click below to download: $csvFileName");
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error generating CSV file: ' . $e->getMessage());
+        }
+    }
 
     /**
      * Validate and process the uploaded file.
-    //  */
+     */
     // public function updatedFile()
     // {
     //     logger('File updated', ['file' => $this->file]);

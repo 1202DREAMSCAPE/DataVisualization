@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('charts', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('saved_charts', function (Blueprint $table) {
+            $table->string('filename')->nullable()->after('user_id');
         });
+        
     }
 
     /**
@@ -22,6 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('charts');
+        Schema::table('saved_charts', function (Blueprint $table) {
+            $table->dropColumn('filename');
+        });
+        
     }
 };

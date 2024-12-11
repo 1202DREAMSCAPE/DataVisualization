@@ -10,6 +10,8 @@ use App\Http\Controllers\LoginController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfilePageController;
 use App\Http\Controllers\CsvCleaningController;
+use App\Http\Controllers\DeleteController;
+
 
 // Landing Page
 Route::view('/', 'landing-page')->name('landing-page');
@@ -77,6 +79,8 @@ Route::get('/saved-charts', function () {
             'user' => auth()->user()
         ];
     });
+
+    Route::delete('/charts/{id}', [DeleteController::class, 'deleteChart'])->name('charts.delete');
 
 
     Route::delete('/chart/{id}', [ChartCustomizeController::class, 'destroyChart'])->name('chart.delete');

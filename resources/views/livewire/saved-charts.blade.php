@@ -49,7 +49,7 @@
                                                  ...options,
                                                  plugins: {
                                                      legend: { position: 'top' },
-                                                     title: { display: true, text: 'Radar Chart' }
+                                                     title: { display: false, text: 'Radar Chart' }
                                                  },
                                                  scales: {
                                                      r: {
@@ -57,21 +57,6 @@
                                                          angleLines: { display: true },
                                                          grid: { color: '#e2e8f0' }
                                                      }
-                                                 }
-                                             }
-                                         });
-                                         break;
-
-                                     case 'bubble':
-                                         window.savedChartInstances[{{ $chart['id'] }}] = new Chart(ctx, {
-                                             type: 'bubble',
-                                             data: chartData.data,
-                                             options: {
-                                                 ...options,
-                                                 plugins: { legend: { display: false } },
-                                                 scales: {
-                                                     x: { grid: { display: true } },
-                                                     y: { beginAtZero: true, grid: { display: true } }
                                                  }
                                              }
                                          });
@@ -125,6 +110,22 @@
                          }
                      }"
                      x-init="init">
+                    <!-- Delete Button (X) -->
+                    <form action="{{ route('charts.delete', $chart['id']) }}" method="POST" class="absolute top-2 right-2">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-full text-xs">
+                            X
+                        </button>
+                    </form>
+
+                    <!-- Chart Type Label -->
+                    @if (isset($chart['data']['type']))
+                        <div class="absolute top-2 left-2 bg-gray-800 text-white text-xs px-2 py-1 rounded">
+                            {{ ucfirst($chart['data']['type']) }} Chart
+                        </div>
+                    @endif
+
                     <div class="h-[300px]">
                         <canvas x-ref="canvas" id="chart-{{ $chart['id'] }}"></canvas>
                     </div>
