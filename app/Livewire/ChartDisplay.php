@@ -89,6 +89,64 @@ class ChartDisplay extends Component
         }
     }
 
+    private function prepareBubbleChartData()
+{
+    if (empty($this->xAxis) || empty($this->yAxis) || empty($this->selectedMetrics)) {
+        session()->flash('error', 'Please select X-Axis, Y-Axis, and at least one metric for the bubble chart.');
+        return;
+    }
+
+    $labels = [];
+    $datasets = [];
+
+    foreach ($this->selectedMetrics as $metricKey) {
+        $dataPoints = [];
+
+        foreach ($this->data as $row) {
+            $x = floatval($row[$this->xAxis] ?? 0);
+            $y = floatval($row[$this->yAxis] ?? 0);
+            $radius = floatval($row[$metricKey] ?? 0);
+
+            $dataPoints[] = ['x' => $x, 'y' => $y, 'r' => $radius];
+        }
+
+        $datasets[] = [
+            'label' => $this->headers[$metricKey] ?? 'Dataset',
+            'data' => $dataPoints,
+            'backgroundColor' => $this->generateRandomColor(0.5),
+            'borderColor' => $this->generateRandomColor(),
+            'borderWidth' => 2
+        ];
+    }
+
+    $this->chartData = [
+        'type' => 'bubble',
+        'data' => [
+            'datasets' => $datasets
+        ],
+        'options' => [
+            'responsive' => true,
+            'maintainAspectRatio' => false,
+            'scales' => [
+                'x' => [
+                    'beginAtZero' => true
+                ],
+                'y' => [
+                    'beginAtZero' => true
+                ]
+            ],
+            'plugins' => [
+                'legend' => ['position' => 'top'],
+                'title' => [
+                    'display' => false,
+                    'text' => $this->chartTitle ?: ucfirst($this->chartType) . ' Chart',
+                ]
+            ]
+        ]
+    ];
+    $this->dispatch('updateChart', $this->chartData);
+}
+
     private function prepareLineChartData()
     {
         if (empty($this->xAxis) || empty($this->selectedMetrics)) {

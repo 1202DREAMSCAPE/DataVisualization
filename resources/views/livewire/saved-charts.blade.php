@@ -2,9 +2,9 @@
     @if (!empty($savedCharts))
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach ($savedCharts as $chart)
-                <div class="bg-white rounded-lg shadow-lg p-6 relative h-[400px]" 
+                <div class="bg-white rounded-lg shadow-lg p-6 relative h-[450px]" 
                      data-chart-index="{{ $chart['id'] }}"
-                     x-data="{ 
+                     x-data="{
                          init() {
                              this.$nextTick(() => {
                                  const ctx = this.$refs.canvas.getContext('2d');
@@ -110,6 +110,9 @@
                          }
                      }"
                      x-init="init">
+                     <h3 class="text-lg font-bold text-center mt-4">{{ $chart['title'] ?? 'Untitled Chart' }}</h3>
+
+
                     <!-- Delete Button (X) -->
                     <form action="{{ route('charts.delete', $chart['id']) }}" method="POST" class="absolute top-2 right-2">
                         @csrf
@@ -129,11 +132,31 @@
                     <div class="h-[300px]">
                         <canvas x-ref="canvas" id="chart-{{ $chart['id'] }}"></canvas>
                     </div>
-                    <h3 class="text-lg font-bold text-center mt-4">{{ $chart['title'] }}</h3>
+
+                     <!-- Generate Remarks Button or AI Insights -->
+                     <div class="mt-4 text-center">
+                        @if (!isset($remarks[$chart['id']]))
+                            <!-- Show the button if remarks are not generated yet -->
+                            <button
+                                wire:click="generateRemarks({{ $chart['id'] }})"
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow"
+                            >
+                                Generate Remarks
+                            </button>
+                        @else
+                            <!-- Show AI Insights if remarks are generated -->
+                            <div class="mt-4 text-gray-700">
+                                <h4 class="font-semibold">AI Insights:</h4>
+                                <p class="text-sm">
+                                    {{ $remarks[$chart['id']] }}
+                                </p>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             @endforeach
         </div>
     @else
-        <p class="text-center text-gray-500 mt-8">No charts have been saved yet.</p>
+        <p class="text-center text-black font-extrabold text-2xl mt-8">No charts have been saved yet.</p>
     @endif
 </div>

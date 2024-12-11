@@ -32,7 +32,6 @@
         <!-- Main Content Area -->
         <main class="p-6">
                 <!-- Call Livewire FileUpload Component -->
-                 <livewire:gemini-modal/> 
                 <livewire:file-upload />
                 <livewire:chart-selector />
 

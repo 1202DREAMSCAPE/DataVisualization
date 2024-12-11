@@ -4,7 +4,6 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 Chart.register(ChartDataLabels);
 
-// Add to your chart.js file
 function createOrUpdateBubbleChart(chartData) {
     const canvas = document.getElementById('bubbleChart');
     if (!canvas || !chartData.data) return;
@@ -89,6 +88,7 @@ function createOrUpdateBubbleChart(chartData) {
 
     window.currentChartInstance = new Chart(canvas, config);
 }
+
 
 
 

@@ -80,6 +80,11 @@ Route::get('/saved-charts', function () {
         ];
     });
 
+    use App\Http\Controllers\AiInsightsController;
+
+    Route::post('/generate-insights', [AiInsightsController::class, 'generateInsights']);
+    
+
     Route::delete('/charts/{id}', [DeleteController::class, 'deleteChart'])->name('charts.delete');
 
 

@@ -119,7 +119,7 @@
 
     <script>
         
-      async function generatePDF() {
+        async function generatePDF() {
     try {
         const { jsPDF } = window.jspdf;
 
@@ -138,7 +138,7 @@
             return;
         }
 
-        const logoURL = "{{ asset('images/vizora.png') }}";
+        // const logoURL = "{{ asset('images/vizora.png') }}";
         const chartsPerRow = 3;
         const rowsPerPage = 2;
         const margin = 20;
@@ -148,28 +148,35 @@
         let currentChart = 0;
 
         while (currentChart < charts.length) {
-            // Add logo to the page
-            try {
-                doc.addImage(logoURL, 'PNG', pageWidth - 80, 20, 60, 40);
-            } catch (error) {
-                console.error('Error adding logo:', error);
-            }
+            // // Add logo
+            // const img = new Image();
+            // img.src = logoURL;
+            // await new Promise((resolve) => (img.onload = resolve));
+            // doc.addImage(img, 'PNG', pageWidth - 80, 20, 60, 40);
 
             for (let row = 0; row < rowsPerPage && currentChart < charts.length; row++) {
                 for (let col = 0; col < chartsPerRow && currentChart < charts.length; col++) {
                     const chartContainer = charts[currentChart];
                     const canvas = chartContainer.querySelector('canvas');
 
-                    if (!canvas) {
-                        console.warn('Canvas not found for chart:', currentChart);
-                        continue;
-                    }
+                    if (!canvas) continue;
 
-                    // Render chart to canvas
+                    // Temporarily hide "X" button and label
+                    const deleteButton = chartContainer.querySelector('form');
+                    const chartLabel = chartContainer.querySelector('.chart-label'); // Assuming your labels have a class
+
+                    if (deleteButton) deleteButton.style.display = 'none';
+                    if (chartLabel) chartLabel.style.display = 'none';
+
+                    // Render chart with html2canvas
                     const renderedCanvas = await html2canvas(chartContainer, {
                         scale: 2,
                         backgroundColor: '#ffffff',
                     });
+
+                    // Restore "X" button and label visibility
+                    if (deleteButton) deleteButton.style.display = '';
+                    if (chartLabel) chartLabel.style.display = '';
 
                     const imgData = renderedCanvas.toDataURL('image/png');
                     const aspectRatio = renderedCanvas.width / renderedCanvas.height;
@@ -185,14 +192,10 @@
                     const posX = margin + col * (chartWidth + margin);
                     const posY = margin + 60 + row * (chartHeight + margin);
 
-                    try {
-                        doc.addImage(imgData, 'PNG', posX, posY, printWidth, printHeight);
-                        doc.setDrawColor(0);
-                        doc.setLineWidth(0.5);
-                        doc.rect(posX, posY, printWidth, printHeight);
-                    } catch (error) {
-                        console.error('Error adding chart image to PDF:', error);
-                    }
+                    doc.addImage(imgData, 'PNG', posX, posY, printWidth, printHeight);
+                    doc.setDrawColor(0);
+                    doc.setLineWidth(0.5);
+                    doc.rect(posX, posY, printWidth, printHeight);
 
                     currentChart++;
                 }

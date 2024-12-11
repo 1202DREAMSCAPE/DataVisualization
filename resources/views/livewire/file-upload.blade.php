@@ -35,40 +35,6 @@
     >
         Open Recently Used File
     </button>
-
-    <!-- Generate CSV File Button -->
-    <button
-        wire:click="openModal"
-        wire:loading.attr="disabled"
-        wire:loading.class="bg-gray-400 cursor-not-allowed"
-        class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg shadow font-semibold flex items-center justify-center gap-2"
-    >
-        <!-- Text while idle -->
-        <span wire:loading.remove>Generate CSV File</span>
-        <!-- Loading spinner -->
-        <span wire:loading>
-            <svg
-                class="animate-spin h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-            >
-                <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                ></circle>
-                <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                ></path>
-            </svg>
-        </span>
-    </button>
 </div>
 
 <!-- Success/Error Messages -->
@@ -120,23 +86,24 @@
                 <div class="hidden sm:block overflow-x-auto overflow-y-auto max-h-96 border border-gray-300 rounded-lg p-4 bg-gray-50">
                     <table class="min-w-full text-sm text-left">
                         <thead class="bg-gray-100">
-                            <tr>
-                                <th class="py-2 px-4 text-gray-700 font-semibold text-center">#</th>
-                                @foreach ($headers as $header)
-                                    <th class="py-2 px-4 text-gray-700 font-semibold">{{ $header }}</th>
-                                @endforeach
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($previewData as $index => $row)
-                                <tr>
-                                    <td class="py-2 px-4 text-gray-600 text-center">{{ $loop->iteration }}</td>
-                                    @foreach ($row as $cell)
-                                        <td class="py-2 px-4 text-gray-600">{{ $cell }}</td>
-                                    @endforeach
-                                </tr>
-                            @endforeach
-                        </tbody>
+    <tr>
+        <!-- Removed the # column -->
+        @foreach ($headers as $header)
+            <th class="py-2 px-4 text-gray-700 font-semibold">{{ $header }}</th>
+        @endforeach
+    </tr>
+</thead>
+<tbody>
+    @foreach ($previewData as $index => $row)
+        <tr>
+            <!-- Removed the # column -->
+            @foreach ($row as $cell)
+                <td class="py-2 px-4 text-gray-600">{{ $cell }}</td>
+            @endforeach
+        </tr>
+    @endforeach
+</tbody>
+
                     </table>
                 </div>
             @else
@@ -162,8 +129,6 @@
 
     @endif
 
-
-    @livewire('gemini-modal')
     <!-- Chart Selector -->
     @if ($isChartSelectorOpen)
         <livewire:chart-selector :headers="$headers" :previewData="$previewData" />

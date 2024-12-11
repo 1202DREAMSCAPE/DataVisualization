@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Models\SavedChart;
 use Livewire\Component;
-use Illuminate\Support\Facades\DB;
 
 class SavedCharts extends Component
 {
@@ -12,52 +11,31 @@ class SavedCharts extends Component
     public $currentHeaders = [];
     public $currentPreviewData = [];
     public $deletingChartId = null;
-
+    public $remarks = []; // To store AI-generated remarks
     public $charts;
-
 
     protected $listeners = [
         'refreshCharts' => 'loadCharts',
         'confirmDelete' => 'handleDeleteConfirmation'
     ];
 
-    public function index()
-{
-    $charts = SavedChart::all(); // Fetch all saved charts
-    return view('your-view-name', compact('charts')); // Replace 'your-view-name' with your Blade file name
-}
-
     public function mount()
     {
-        // Get the headers and preview data from session if available
         $this->currentHeaders = session('headers', []);
         $this->currentPreviewData = session('previewData', []);
         $this->loadCharts();
-        $this->charts = SavedChart::all(); // Fetch all charts from the database
-
+        $this->charts = SavedChart::all();
     }
-
-    public function deleteChart($chartId)
-    {
-        $chart = SavedChart::find($chartId);
-    
-        if ($chart) {
-            $chart->delete();
-            $this->emit('chartDeleted', $chartId); // Optional: Emit an event if needed
-        }
-    }
-    
 
     public function loadCharts()
     {
-        // Get both user's charts and null user_id charts
-        $this->savedCharts = SavedChart::where(function($query) {
+        $this->savedCharts = SavedChart::where(function ($query) {
             $query->where('user_id', auth()->id())
                   ->orWhereNull('user_id');
         })
         ->orderBy('created_at', 'desc')
         ->get()
-        ->map(function($chart) {
+        ->map(function ($chart) {
             return [
                 'id' => $chart->id,
                 'title' => $chart->title,
@@ -67,43 +45,58 @@ class SavedCharts extends Component
         ->toArray();
     }
 
-    public function saveChart($chartData)
-{
-    try {
-        // Create a new chart entry
-        $chart = new SavedChart();
-        $chart->title = $chartData['title'] ?? 'Untitled Chart';
-        $chart->chart_data = json_encode($chartData['data']);
-        $chart->user_id = auth()->id(); // Optional if user authentication is implemented
-        $chart->file_record_id = $chartData['filename'];
-        $chart->save();
+    public function deleteChart($chartId)
+    {
+        $chart = SavedChart::find($chartId);
 
-        // Reload charts to include the newly saved chart
-        $this->loadCharts();
-
-        // Notify the frontend that the chart was saved
-        $this->dispatchBrowserEvent('chartSaved', ['success' => true]);
-
-        session()->flash('message', 'Chart saved successfully.');
-    } catch (\Exception $e) {
-        \Log::error('Error saving chart: ' . $e->getMessage());
-        $this->dispatchBrowserEvent('chartSaved', ['success' => false, 'error' => $e->getMessage()]);
-
-        session()->flash('error', 'Failed to save the chart. Please try again.');
+        if ($chart) {
+            $chart->delete();
+            $this->emit('chartDeleted', $chartId);
+        }
     }
-}
 
+    public function saveChart($chartData)
+    {
+        try {
+            $chart = new SavedChart();
+            $chart->title = $chartData['title'] ?? 'Untitled Chart';
+            $chart->chart_data = json_encode($chartData['data']);
+            $chart->user_id = auth()->id();
+            $chart->file_record_id = $chartData['filename'];
+            $chart->save();
 
+            $this->loadCharts();
 
-    
+            $this->dispatchBrowserEvent('chartSaved', ['success' => true]);
+
+            session()->flash('message', 'Chart saved successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Error saving chart: ' . $e->getMessage());
+            $this->dispatchBrowserEvent('chartSaved', ['success' => false, 'error' => $e->getMessage()]);
+
+            session()->flash('error', 'Failed to save the chart. Please try again.');
+        }
+    }
+
+    // New Method: Generate Remarks
+    public function generateRemarks($chartId)
+    {
+        $chart = collect($this->savedCharts)->firstWhere('id', $chartId);
+
+        if ($chart) {
+            // Mocked AI Insights (Replace with real AI or API integration)
+            $this->remarks[$chartId] = "Insights for chart '{$chart['title']}' have been successfully generated.";
+        } else {
+            $this->remarks[$chartId] = 'No insights available for this chart.';
+        }
+    }
+
     public function createNewChart()
     {
         if (empty($this->currentHeaders) || empty($this->currentPreviewData)) {
-            // If no data in session, redirect to upload page
             return redirect()->route('project');
         }
 
-        // Dispatch event to open chart selector with current data
         $this->dispatch('open-chart-selector', 
             headers: $this->currentHeaders,
             previewData: $this->currentPreviewData

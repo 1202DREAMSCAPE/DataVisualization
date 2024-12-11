@@ -22,7 +22,7 @@
         'pie' => ['label' => 'Pie Chart', 'image' => '/images/piechart.png'],
         'radar' => ['label' => 'Radar Chart', 'image' => '/images/radarchart.png'],
         'gauge' => ['label' => 'Gauge Chart', 'image' => '/images/gaugechart.png'],
-        'line' => ['label' => 'Line Chart', 'image' => '/images/lollipopchart.png'],
+        'bubble' => ['label' => 'Bubble Chart', 'image' => '/images/lollipopchart.png'],
     ] as $chartType => $chart)
         <div class="flex flex-col items-center">
             <button wire:click="selectChart('{{ $chartType }}')"
