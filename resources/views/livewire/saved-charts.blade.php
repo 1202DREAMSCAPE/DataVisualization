@@ -133,7 +133,7 @@
 
                     <!-- Chart Type Label -->
                     @if (isset($chart['data']['type']))
-                        <div class="absolute top-2 left-2 bg-gray-800 text-white text-xs px-2 py-1 rounded">
+                        <div class="absolute top-2 left-2 bg-gray-800 font-dmSerif text-white text-xs px-2 py-1 rounded text-center items-center  transition-transform bg-gradient-to-br from-pink-600 via-blue-600 to-red-500 bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
                             {{ ucfirst($chart['data']['type']) }} Chart
                         </div>
                     @endif
