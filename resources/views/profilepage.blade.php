@@ -219,7 +219,8 @@
                     <!-- Apply gradient-border and p-1 to show border around image -->
                     <div class="relative w-48 h-48 mx-auto rounded-full gradient-border p-1">
                         @if($user->profile_picture)
-                            <img src="{{ asset('storage/' . $user->profile_picture) }}" alt="{{ $user->name }}'s Profile Picture"
+                        <img src="{{ asset('storage/app/public/' . $user->profile_picture) }}" alt="{{ $user->name }}'s Profile Picture"
+                            
                                  class=" w-full h-full object-cover">
                         @else
                             <img src="{{ asset('images/default.png') }}" alt="Default Profile Picture"
