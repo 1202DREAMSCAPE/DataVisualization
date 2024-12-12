@@ -2,7 +2,7 @@
     @if (!empty($savedCharts))
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach ($savedCharts as $chart)
-                <div class="bg-white rounded-lg shadow-lg p-6 relative h-[450px]" 
+                <div class="bg-white rounded-lg shadow-lg p-6 relative h-[400px]" 
                      data-chart-index="{{ $chart['id'] }}"
                      x-data="{
                          init() {
@@ -13,8 +13,9 @@
                                  }
                                  window.savedChartInstances = window.savedChartInstances || [];
 
-                                 const chartType = {{ json_encode($chart['data']['type']) }};
-                                 const chartData = {{ json_encode($chart['data']) }};
+                                 const chartType = {{ json_encode($chart['data']['type'] ?? '') }};
+                                const chartData = {{ json_encode($chart['data'] ?? []) }};
+
                                  const options = {
                                      ...chartData.options || {},
                                      responsive: true,
@@ -25,6 +26,7 @@
                                      case 'bar':
                                      case 'line':
                                      case 'scatter':
+                                     case 'polarArea':
                                          window.savedChartInstances[{{ $chart['id'] }}] = new Chart(ctx, {
                                              type: chartType,
                                              data: chartData.data,
@@ -59,6 +61,14 @@
                                                      }
                                                  }
                                              }
+                                         });
+                                         break;
+                                    
+                                    case 'polarArea':
+                                         window.savedChartInstances[{{ $chart['id'] }}] = new Chart(ctx, {
+                                             type: chartType,
+                                             data: chartData.data,
+                                             options: options
                                          });
                                          break;
 
@@ -110,7 +120,6 @@
                          }
                      }"
                      x-init="init">
-                     <h3 class="text-lg font-bold text-center mt-4">{{ $chart['title'] ?? 'Untitled Chart' }}</h3>
 
 
                     <!-- Delete Button (X) -->
@@ -129,30 +138,11 @@
                         </div>
                     @endif
 
-                    <div class="h-[300px]">
+                    <div class="h-[300px] mt-3">
                         <canvas x-ref="canvas" id="chart-{{ $chart['id'] }}"></canvas>
                     </div>
+                     <h3 class="text-lg font-bold text-center">{{ $chart['title'] ?? 'Untitled Chart' }}</h3>
 
-                     <!-- Generate Remarks Button or AI Insights -->
-                     <div class="mt-4 text-center">
-                        @if (!isset($remarks[$chart['id']]))
-                            <!-- Show the button if remarks are not generated yet -->
-                            <button
-                                wire:click="generateRemarks({{ $chart['id'] }})"
-                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow"
-                            >
-                                Generate Remarks
-                            </button>
-                        @else
-                            <!-- Show AI Insights if remarks are generated -->
-                            <div class="mt-4 text-gray-700">
-                                <h4 class="font-semibold">AI Insights:</h4>
-                                <p class="text-sm">
-                                    {{ $remarks[$chart['id']] }}
-                                </p>
-                            </div>
-                        @endif
-                    </div>
                 </div>
             @endforeach
         </div>

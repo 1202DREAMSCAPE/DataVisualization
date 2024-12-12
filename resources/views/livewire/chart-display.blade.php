@@ -54,54 +54,21 @@
                         </div>
                     </div>
 
-                    @elseif ($chartType === 'bubble') <!-- Bubble Chart Controls -->
-    <div class="space-y-6">
-        <!-- X-Axis Selection -->
-        <div>
-            <label class="block text-gray-700 text-sm font-bold mb-2">Select X-Axis</label>
-            <select wire:model.live="xAxis" class="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                @foreach ($headers as $key => $label)
-                    <option value="{{ $key }}">{{ $label }}</option>
-                @endforeach
-            </select>
-            @error('xAxis') 
-            <p class="text-red-500 text-xs mt-1">{{ $message }}</p> 
-            @enderror
-        </div>
-
-        <!-- Y-Axis Metrics Selection -->
-        <div>
-            <label class="block text-gray-700 text-sm font-bold mb-2">Select Metrics for Y-Axis</label>
-            <div class="space-y-2">
-                @foreach ($headers as $key => $label)
-                    @if ($key !== $xAxis)
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" wire:model.live="selectedMetrics" value="{{ $key }}" class="form-checkbox text-blue-500 focus:ring-blue-500">
+            @elseif ($chartType === 'polarArea')
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Select Data Columns</label>
+                    <div class="space-y-2">
+                        @foreach ($headers as $key => $label)
+                            <label class="flex items-center space-x-2">
+                            <input type="checkbox" wire:model.live="selectedColumns" value="{{ $key }}" class="form-checkbox text-blue-500 focus:ring-blue-500">
                             <span>{{ $label }}</span>
-                        </label>
-                    @endif
-                @endforeach
-            </div>
-            @error('selectedMetrics') 
-            <p class="text-red-500 text-xs mt-1">{{ $message }}</p> 
-            @enderror
-        </div>
-
-        <!-- Bubble Size (Radius) Selection -->
-        <div>
-            <label class="block text-gray-700 text-sm font-bold mb-2">Select Bubble Size Metric</label>
-            <select wire:model.live="bubbleSize" class="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                @foreach ($headers as $key => $label)
-                    <option value="{{ $key }}">{{ $label }}</option>
-                @endforeach
-            </select>
-            @error('bubbleSize') 
-            <p class="text-red-500 text-xs mt-1">{{ $message }}</p> 
-            @enderror
-        </div>
-    </div>
-
-                
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('selectedColumns') 
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p> 
+                    @enderror
+                </div>
 
             @elseif ($chartType === 'bar')
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

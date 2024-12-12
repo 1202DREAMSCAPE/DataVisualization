@@ -12,7 +12,7 @@ class ChartDisplay extends Component
     public $chartType;
     public $headers = [];
     public $data = [];
-    public $chartTitle = ' ';
+    public $chartTitle = 'Untitled Chart';
     public $chartData = [];
     public $previewData = [];
     public $selectedColumns = [];
@@ -22,12 +22,14 @@ class ChartDisplay extends Component
     public $yAxis;
     public $selectedCategories = [];
     public $savedCharts = [];
+    public $xAxisLine; // X-Axis for line chart
+    public $selectedMetricsLine = []; // Y-Axis metrics for line chart
 
 
     // Mount method remains the same but adds bubble chart type handling
     public function mount($chartType = null, $headers = [], $data = [])
     {
-        $this->chartType = $chartType ?? 'bar';
+        $this->chartType = $chartType ?? ' ';
         $this->headers = $headers;
         $this->data = $data;
         $this->savedCharts = [];
@@ -56,6 +58,9 @@ class ChartDisplay extends Component
 
         try {
             switch ($this->chartType) {
+                case 'polar':
+                    $this->preparePolarAreaChartData();  // Add polar chart preparation
+                    break;
                 case 'bubble':
                     $this->prepareBubbleChartData();
                     break;
@@ -68,11 +73,7 @@ class ChartDisplay extends Component
                 case 'gauge':
                     $this->prepareGaugeChartData();
                     break;
-                case 'line':  // Add lollipop chart case
-                    $this->prepareLineChartData();
-                    break;
                 case 'bar':
-                default:
                     $this->prepareBarChartData();
                     break;
             }
@@ -89,146 +90,72 @@ class ChartDisplay extends Component
         }
     }
 
-    private function prepareBubbleChartData()
+// Prepare data for the Polar Area Chart
+private function preparePolarAreaChartData()
 {
-    if (empty($this->xAxis) || empty($this->yAxis) || empty($this->selectedMetrics)) {
-        session()->flash('error', 'Please select X-Axis, Y-Axis, and at least one metric for the bubble chart.');
-        return;
+    if (empty($this->selectedColumns)) {
+        session()->flash('error', 'Please select at least one column for the polar area chart.');
+        return [];
     }
 
     $labels = [];
-    $datasets = [];
+    $values = [];
 
-    foreach ($this->selectedMetrics as $metricKey) {
-        $dataPoints = [];
+    foreach ($this->data as $row) {
+        foreach ($this->selectedColumns as $column) {
+            $label = $this->headers[$column] ?? $column;
 
-        foreach ($this->data as $row) {
-            $x = floatval($row[$this->xAxis] ?? 0);
-            $y = floatval($row[$this->yAxis] ?? 0);
-            $radius = floatval($row[$metricKey] ?? 0);
+            if (!in_array($label, $labels)) {
+                $labels[] = $label;
+                $values[] = 0;
+            }
 
-            $dataPoints[] = ['x' => $x, 'y' => $y, 'r' => $radius];
+            $key = array_search($label, $labels);
+            $values[$key] += floatval($row[$column] ?? 0);
         }
-
-        $datasets[] = [
-            'label' => $this->headers[$metricKey] ?? 'Dataset',
-            'data' => $dataPoints,
-            'backgroundColor' => $this->generateRandomColor(0.5),
-            'borderColor' => $this->generateRandomColor(),
-            'borderWidth' => 2
-        ];
     }
 
+    $backgroundColors = $this->generateColors(count($labels));
+
     $this->chartData = [
-        'type' => 'bubble',
+        'type' => 'polarArea',
         'data' => [
-            'datasets' => $datasets
+            'labels' => $labels,
+            'datasets' => [
+                [
+                    'data' => $values,
+                    'backgroundColor' => $backgroundColors,
+                    'borderWidth' => 1
+                ]
+            ]
         ],
         'options' => [
             'responsive' => true,
-            'maintainAspectRatio' => false,
-            'scales' => [
-                'x' => [
-                    'beginAtZero' => true
-                ],
-                'y' => [
-                    'beginAtZero' => true
-                ]
-            ],
             'plugins' => [
-                'legend' => ['position' => 'top'],
+                'legend' => [
+                    'position' => 'top',
+                ],
                 'title' => [
                     'display' => false,
-                    'text' => $this->chartTitle ?: ucfirst($this->chartType) . ' Chart',
                 ]
             ]
         ]
     ];
+
     $this->dispatch('updateChart', $this->chartData);
 }
 
-    private function prepareLineChartData()
-    {
-        if (empty($this->xAxis) || empty($this->selectedMetrics)) {
-            session()->flash('error', 'Please select both X-Axis and at least one metric for the line chart.');
-            return;
-        }
-    
-        $labels = [];
-        foreach ($this->data as $row) {
-            $label = $row[$this->xAxis] ?? null;
-            if ($label !== null) {
-                $labels[] = $label;
-            }
-        }
-    
-        $labels = array_values(array_filter($labels, fn($label) => !is_null($label) && $label !== ''));
-    
-        if (empty($labels)) {
-            session()->flash('error', 'No valid data available for the line chart.');
-            return;
-        }
-    
-        $datasets = [];
-        foreach ($this->selectedMetrics as $metricKey) {
-            $dataPoints = [];
-    
-            foreach ($this->data as $row) {
-                $value = floatval($row[$metricKey] ?? 0);
-                $dataPoints[] = $value;
-            }
-    
-            $datasets[] = [
-                'label' => $this->headers[$metricKey] ?? 'Dataset',
-                'data' => $dataPoints,
-                'borderColor' => $this->generateRandomColor(),
-                'backgroundColor' => $this->generateRandomColor(0.2),
-                'borderWidth' => 2,
-                'pointRadius' => 3,
-                'fill' => false,
-                'lineTension' => 0.1
-            ];
-        }
-    
-        $this->chartData = [
-            'type' => 'line',
-            'data' => [
-                'labels' => $labels,
-                'datasets' => $datasets
-            ],
-            'options' => [
-                'responsive' => true,
-                'maintainAspectRatio' => false,
-                'scales' => [
-                    'x' => [
-                        'type' => 'category',
-                        'labels' => $labels,
-                        'grid' => ['display' => false],
-                    ],
-                    'y' => [
-                        'beginAtZero' => true,
-                        'grid' => ['color' => '#e2e8f0'],
-                    ]
-                ],
-                'plugins' => [
-                    'legend' => ['position' => 'top'],
-                    'title' => [
-                        'display' => false,
-                        'text' => $this->chartTitle ?: ucfirst($this->chartType) . ' Chart',
-                    ],
-                    'tooltip' => [
-                        'callbacks' => [
-                            'label' => function($context) {
-                                return $context['label'] . ': ' . $context['raw'];
-                            }
-                        ]
-                    ]
-                ]
-            ]
-        ];
-    
-        $this->dispatch('updateChart', $this->chartData);
-    }
+
+// Helper function to generate random colors
+private function generateRandomColor($opacity = 1)
+{
+    $r = rand(0, 255);
+    $g = rand(0, 255);
+    $b = rand(0, 255);
+    return "rgba($r, $g, $b, $opacity)";
+}
+
+
     
 
 
@@ -340,9 +267,6 @@ public function updatedYAxis()
 {
     $this->prepareBarChartData();
 }
-    // Updated bubble chart data preparation
-
-    // Add updatedSelectedColumns method to handle bubble chart updates
     public function updatedSelectedColumns($value)
     {
         logger()->debug('Selected column updated', ['value' => $value]);
@@ -353,6 +277,9 @@ public function updatedYAxis()
                 break;
             case 'pie':
                 $this->preparePieChartData();
+                break;
+            case 'polarArea':
+                $this->preparePolarAreaChartData();
                 break;
             case 'gauge':
                 $this->prepareGaugeChartData();
@@ -367,6 +294,7 @@ public function updatedYAxis()
         if ($this->chartType === 'radar') {
             $this->prepareRadarChartData();
         }
+
     }
 
     public function updatedSelectedCategories()

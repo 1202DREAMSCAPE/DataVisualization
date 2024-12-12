@@ -4,94 +4,6 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 Chart.register(ChartDataLabels);
 
-function createOrUpdateBubbleChart(chartData) {
-    const canvas = document.getElementById('bubbleChart');
-    if (!canvas || !chartData.data) return;
-
-    // Clear any existing chart instance
-    if (window.currentChartInstance) {
-        window.currentChartInstance.destroy();
-    }
-
-    const data = chartData.data.map(item => ({
-        x: item.x,
-        y: item.y,
-        r: Math.sqrt(item.value) * 3, // Adjust bubble size scaling
-        value: item.value,
-        label: item.label
-    }));
-
-    const config = {
-        type: 'bubble',
-        data: {
-            datasets: [{
-                data: data,
-                backgroundColor: data.map(() => 
-                    `hsla(${Math.random() * 360}, 70%, 50%, 0.6)`
-                ),
-                borderColor: data.map(() => 
-                    `hsla(${Math.random() * 360}, 70%, 50%, 1)`
-                ),
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    min: 0,
-                    max: 1,
-                    grid: {
-                        color: '#e2e8f0'
-                    },
-                    ticks: {
-                        callback: function(value) {
-                            return value.toFixed(1);
-                        }
-                    }
-                },
-                y: {
-                    min: 0,
-                    max: 100,
-                    grid: {
-                        color: '#e2e8f0'
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.raw.label}: ${context.raw.value}`;
-                        }
-                    }
-                },
-                datalabels: {
-                    color: 'black',
-                    font: {
-                        weight: 'bold'
-                    },
-                    formatter: function(value, context) {
-                        return context.chart.data.datasets[0].data[context.dataIndex].label;
-                    },
-                    anchor: 'end',
-                    align: 'top',
-                    offset: 5
-                }
-            }
-        }
-    };
-
-    window.currentChartInstance = new Chart(canvas, config);
-}
-
-
-
-
 // Event Listener for Chart Saved
 window.addEventListener('chartSaved', (event) => {
     console.log('Charts saved:', event.detail);
@@ -154,64 +66,57 @@ window.addEventListener('updateChart', (event) => {
         case 'gauge':
             createOrUpdateGaugeChart(chartData);
             break;
-        case 'line':  // Add this case to handle bubble charts
-            createOrUpdateLineChart(chartData);
-            break;
         default:
             createOrUpdateBarOrLineChart(chartData);
     }
 });
 
-function createOrUpdateLineChart(chartData) {
+
+
+function createOrUpdatePolarAreaChart(chartData) {
     const canvas = document.getElementById('chartCanvas');
     if (!canvas) {
         console.error('Canvas element not found.');
         return;
     }
 
-    // Validate the data format
-    if (!Array.isArray(chartData.data) || chartData.data.some(item => !('x' in item && 'y' in item))) {
-        console.error('Invalid data format for Line Chart. Expected [{x, y}, ...]');
-        return;
-    }
-
-    // Clear any existing chart instance
+    const ctx = canvas.getContext('2d');
     if (window.currentChartInstance) {
         window.currentChartInstance.destroy();
     }
 
-    // Configure the line chart
-const lineConfig = {
-    type: 'line',
-    data: {
-        datasets: [{
-            label: chartData.label || 'Line Chart',
-            data: chartData.data || [],
-            borderColor: 'rgba(75, 192, 192, 1)',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { position: 'top' },
-            tooltip: {
-                callbacks: {
-                    label: (context) => `${context.label}: ${context.raw}`,
-                }
-            }
+    const backgroundColor = chartData.data.labels.map(() =>
+        `hsla(${Math.random() * 360}, 70%, 50%, 0.6)`
+    );
+
+    window.currentChartInstance = new Chart(canvas, {
+        type: 'polarArea',
+        data: {
+            labels: chartData.data.labels,
+            datasets: [{
+                data: chartData.data.values,
+                backgroundColor: backgroundColor,
+                borderColor: backgroundColor.map(color => color.replace('0.6', '1')),  // Border with solid color
+                borderWidth: 1,
+            }],
         },
-        scales: {
-            x: { title: { display: true, text: 'X-Axis' } },
-            y: { title: { display: true, text: 'Y-Axis' } },
-        }
-    }
-};
-
-
-    // Create or update the chart
-    window.currentChartInstance = new Chart(canvas.getContext('2d'), config);
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return `${context.label}: ${context.raw}`;
+                        },
+                    },
+                },
+            },
+        },
+    });
 }
 
 
