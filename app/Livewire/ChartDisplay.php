@@ -13,6 +13,7 @@ class ChartDisplay extends Component
     public $headers = [];
     public $data = [];
     public $chartTitle = 'Untitled Chart';
+    public $remarks = '';
     public $chartData = [];
     public $previewData = [];
     public $selectedColumns = [];
@@ -171,6 +172,7 @@ private function generateRandomColor($opacity = 1)
         // Create the saved chart record
         $savedChart = SavedChart::create([
             'title' => $this->chartTitle ?: ucfirst($this->chartType) . ' Chart',
+            'remarks'=> $this->remarks,
             'type' => $this->chartType,
             'chart_data' => $this->chartData,
             'user_id' => auth()->id()

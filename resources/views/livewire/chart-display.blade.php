@@ -18,6 +18,15 @@
                     class="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Enter chart title"
                 />
+                <label for="remarks" class="block text-gray-700 text-sm mt-2 font-bold mb-2">Remarks</label>
+                <input 
+                    type="text" 
+                    id="remarks"
+                    name="remarks"
+                    wire:model="remarks"
+                    class="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter Your Remarks"
+                />
             </div>
 
             <!-- Chart Controls -->

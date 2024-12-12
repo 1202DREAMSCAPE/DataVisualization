@@ -14,6 +14,7 @@ return new class extends Migration
             $table->json('chart_data');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
+            $table->string('remarks');
         });
     }
 

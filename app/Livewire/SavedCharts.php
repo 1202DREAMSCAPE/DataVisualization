@@ -39,7 +39,8 @@ class SavedCharts extends Component
             return [
                 'id' => $chart->id,
                 'title' => $chart->title,
-                'data' => $chart->chart_data
+                'data' => $chart->chart_data,
+                'remarks'=>$chart->remarks
             ];
         })
         ->toArray();
@@ -63,6 +64,7 @@ class SavedCharts extends Component
             $chart->chart_data = json_encode($chartData['data']);
             $chart->user_id = auth()->id();
             $chart->file_record_id = $chartData['filename'];
+            $chart->remarks=$chartData['remarks'] ?? 'No Remarks';
             $chart->save();
 
             $this->loadCharts();

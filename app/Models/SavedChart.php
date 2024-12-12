@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SavedChart extends Model
 {
-    protected $fillable = ['title', 'chart_data', 'user_id', 'file_record_id'];
+    protected $fillable = ['title', 'chart_data', 'user_id', 'file_record_id', 'remarks'];
     
     protected $casts = [
         'chart_data' => 'array'

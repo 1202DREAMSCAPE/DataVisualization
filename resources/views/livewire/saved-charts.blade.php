@@ -141,7 +141,9 @@
                     <div class="h-[300px] mt-3">
                         <canvas x-ref="canvas" id="chart-{{ $chart['id'] }}"></canvas>
                     </div>
+                    
                      <h3 class="text-lg font-bold text-center">{{ $chart['title'] ?? 'Untitled Chart' }}</h3>
+                     <h3 class="text-md font-semibold text-center"> {{ $chart['remarks'] ?? 'None' }}</h3>
 
                 </div>
             @endforeach
