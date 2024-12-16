@@ -6,9 +6,6 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use App\Models\FileRecord;
-use App\Services\GoogleGeminiAgentService;
-
 
 class FileUpload extends Component
 {
@@ -17,132 +14,39 @@ class FileUpload extends Component
     public $file;
     public $filename;
     public $headers = [];
-    public $previewData = [];
+    public $cleanedData = [];
+    public $cleaningSummary = [];
+    public $imputationOptions = [];
+    public $selectedImputation = [];
     public $isChartSelectorOpen = false;
-    public $generatedFilePath; // Add this property to avoid the undefined property error
-    public $prompt; // Add this to manage the input prompt
+    public $showImputation = false; // Controls the visibility of imputation dropdown
+    public $imputationMethod = 'mean'; // Default method
 
-    protected $listeners = ['closeChartSelector' => 'closeChartSelector', 'openGeminiModal' => 'show'];
-    public $isModalOpen = false; // To control modal visibility
-
-    public function show()
-    {
-        $this->isModalOpen = true; // Open the modal
-    }
 
     public function updatedFile()
     {
-        logger('File updated', ['file' => $this->file]);
-
         $this->validate([
             'file' => 'required|mimes:csv,xlsx|max:10240',
         ]);
 
         $this->filename = $this->file->getClientOriginalName();
-        logger('File validated and uploaded', ['filename' => $this->filename]);
-
         $path = $this->file->store('temp');
-        logger('File stored temporarily', ['path' => $path]);
+        $this->loadAndCleanData($path);
 
-        $this->loadExcelData($path);
-
-        // Save file metadata to the database
-        FileRecord::create([
-            'filename' => $this->filename,
-            'path' => $path,
-            'headers' => $this->headers,
-            'preview_data' => $this->previewData,
-        ]);
-
-        logger('File metadata saved to database.');
-
-        // Save recently used file in session
         session([
-            'recently_used_file' => [
+            'cleaned_file' => [
                 'filename' => $this->filename,
                 'headers' => $this->headers,
-                'previewData' => $this->previewData,
+                'cleanedData' => $this->cleanedData,
             ],
         ]);
 
-        logger('Recently used file saved to session.');
+        session()->flash('success', 'File uploaded and cleaned successfully!');
     }
 
-        public function openModal()
-    {
-        $this->dispatch('openGeminiModal'); // Emit an event to open the modal
-    }
-
-
-    public function generateCsvFile()
-    {
-        try {
-            logger('Generating CSV file via Gemini model.');
-
-            $geminiService = new GoogleGeminiAgentService();
-
-            // Ensure that $this->prompt is set
-            if (empty($this->prompt)) {
-                session()->flash('error', 'The prompt is required to generate a CSV file.');
-                return;
-            }
-
-            // Pass the prompt to the service method
-            $generatedData = $geminiService->generateCsvData($this->prompt);
-
-            // Convert the data into CSV format
-            $csvContent = fopen('php://temp', 'r+');
-            foreach ($generatedData as $row) {
-                fputcsv($csvContent, $row);
-            }
-            rewind($csvContent);
-
-            $directoryPath = storage_path('app/generated');
-            if (!is_dir($directoryPath)) {
-                mkdir($directoryPath, 0755, true);
-            }
-
-            $csvFileName = 'generated_file_' . time() . '.csv';
-            $filePath = 'generated/' . $csvFileName;
-
-            Storage::disk('local')->put($filePath, stream_get_contents($csvContent));
-            fclose($csvContent);
-
-            $this->generatedFilePath = $filePath;
-
-            session()->flash('success', "CSV file generated successfully! Click below to download: $csvFileName");
-        } catch (\Exception $e) {
-            session()->flash('error', 'Error generating CSV file: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Validate and process the uploaded file.
-     */
-    // public function updatedFile()
-    // {
-    //     logger('File updated', ['file' => $this->file]);
-
-    //     $this->validate([
-    //         'file' => 'required|mimes:csv,xlsx|max:10240',
-    //     ]);
-
-    //     $this->filename = $this->file->getClientOriginalName();
-    //     logger('File validated and uploaded', ['filename' => $this->filename]);
-
-    //     $path = $this->file->store('temp');
-    //     logger('File stored temporarily', ['path' => $path]);
-
-    //     $this->loadExcelData($path);
-    // }
-
-    /**
-     * Extract headers and preview data from the uploaded file.
-     */
-    public function loadExcelData($path)
+    private function loadAndCleanData($path)
     {
         $fullPath = Storage::path($path);
-        logger('Loading Excel data from path', ['fullPath' => $fullPath]);
     
         try {
             $spreadsheet = IOFactory::load($fullPath);
@@ -150,96 +54,194 @@ class FileUpload extends Component
             $data = $sheet->toArray(null, true, true, true);
     
             $this->headers = array_shift($data);
-            $this->previewData = $data;
     
-            logger('Headers and preview data extracted.', [
-                'headers' => $this->headers,
-                'previewData' => $this->previewData,
-            ]);
+            // Generate imputation options and check if imputation is needed
+            $this->imputationOptions = $this->generateImputationOptions($data);
+            $this->showImputation = !empty($this->imputationOptions); // Show dropdown only if needed
+    
+            $this->cleanedData = $this->cleanData($data);
+    
         } catch (\Exception $e) {
-            logger('Error loading Excel data.', ['message' => $e->getMessage()]);
-            session()->flash('error', 'Failed to load the file. Please ensure it is a valid CSV or XLSX file.');
+            session()->flash('error', 'Failed to process the file. Please ensure it is a valid CSV or XLSX file.');
         } finally {
-            // Cleanup temporary file
             Storage::delete($path);
-            logger('Temporary file deleted after processing.', ['path' => $path]);
         }
     }
     
 
+    private function generateImputationOptions(array $data)
+    {
+        $options = [];
+        foreach ($this->headers as $index => $header) {
+            $columnValues = array_column($data, $index);
+            $isNumeric = array_reduce($columnValues, function ($carry, $value) {
+                return $carry && (is_numeric($value) || is_null($value) || trim($value) === '');
+            }, true);
 
+            $options[$header] = $isNumeric
+                ? ['mean', 'median', 'mode', 'standard_deviation']
+                : ['mode', 'default_value'];
+        }
+        return $options;
+    }
+
+    private function cleanData(array $data)
+    {
+        $cleanedData = [];
+        $uniqueRows = [];
+        $rowsRemovedDueToNulls = 0;
+        $rowsRemovedDueToDuplicates = 0;
+    
+        foreach ($data as $rowIndex => $row) {
+            // Check if the row contains only null, blank, or "-" values
+            $isNullRow = true;
+            foreach ($row as $value) {
+                if (!is_null($value) && trim((string) $value) !== '' && $value !== '-') {
+                    $isNullRow = false;
+                    break;
+                }
+            }
+    
+            if ($isNullRow) {
+                $rowsRemovedDueToNulls++;
+                continue;
+            }
+    
+            // Serialize the row to check for duplicates
+            $serializedRow = serialize($row);
+            if (in_array($serializedRow, $uniqueRows)) {
+                $rowsRemovedDueToDuplicates++;
+                continue;
+            }
+    
+            // Impute missing values
+            $row = array_map(function ($value, $colIndex) use ($data) {
+                $colIndex = is_int($colIndex) ? $colIndex : array_search($colIndex, array_keys($this->headers)); // Ensure integer index
+                if (is_null($value) || trim((string) $value) === '' || $value === '-') {
+                    return $this->getImputedValue($data, $colIndex);
+                }
+                return $value;
+            }, $row, array_keys($row));
+    
+            $uniqueRows[] = $serializedRow;
+            $cleanedData[] = $row;
+        }
+    
+        $this->cleaningSummary = [
+            'total_rows' => count($data),
+            'cleaned_rows' => count($cleanedData),
+            'rows_removed_due_to_nulls' => $rowsRemovedDueToNulls,
+            'rows_removed_due_to_duplicates' => $rowsRemovedDueToDuplicates,
+        ];
+    
+        return $cleanedData;
+    }
+    
+    
+    
+    private function getImputedValue(array $data, int $colIndex)
+    {
+        $columnValues = array_column($data, $colIndex);
+        $nonNullValues = array_filter($columnValues, function ($value) {
+            return !is_null($value) && trim((string) $value) !== '' && $value !== '-';
+        });
+    
+        if (empty($nonNullValues)) {
+            return null; // No values to base imputation on
+        }
+    
+        if ($this->isColumnNumeric($nonNullValues)) {
+            // Numerical imputation
+            switch ($this->imputationMethod) {
+                case 'mean':
+                    return array_sum($nonNullValues) / count($nonNullValues);
+                case 'median':
+                    sort($nonNullValues);
+                    $middle = floor(count($nonNullValues) / 2);
+                    return count($nonNullValues) % 2 === 0
+                        ? ($nonNullValues[$middle - 1] + $nonNullValues[$middle]) / 2
+                        : $nonNullValues[$middle];
+                case 'mode':
+                    $valuesCount = array_count_values($nonNullValues);
+                    arsort($valuesCount);
+                    return array_key_first($valuesCount);
+                default:
+                    return null;
+            }
+        } else {
+            // Categorical (string) imputation: Use mode
+            $valuesCount = array_count_values($nonNullValues);
+            arsort($valuesCount);
+            return array_key_first($valuesCount);
+        }
+    }
+    
+    
+    private function isColumnNumeric(array $values)
+    {
+        return array_reduce($values, function ($carry, $value) {
+            return $carry && is_numeric($value);
+        }, true);
+    }
+    
+    
+    
+    public function applyImputation()
+    {
+        if (!empty($this->cleanedData)) {
+            foreach ($this->cleanedData as &$row) {
+                foreach ($row as $colIndex => &$value) {
+                    if (is_null($value) || trim((string) $value) === '') {
+                        $value = $this->getImputedValue($this->cleanedData, $colIndex);
+                    }
+                }
+            }
+            unset($row); // Unset reference to avoid side effects
+    
+            // Save the updated data to the session
+            session([
+                'cleaned_file' => [
+                    'filename' => $this->filename,
+                    'headers' => $this->headers,
+                    'cleanedData' => $this->cleanedData,
+                ],
+            ]);
+    
+            session()->flash('success', 'Imputation applied successfully and saved!');
+        } else {
+            session()->flash('error', 'No data available for imputation.');
+        }
+    }
+    
     public function uploadRecentlyUsedFile()
 {
-    // Check if a recently used file exists in the session
-    if (session()->has('recently_used_file')) {
-        $recentFile = session('recently_used_file');
-
+    if (session()->has('cleaned_file')) {
+        $recentFile = session('cleaned_file');
+        
+        // Set the filename, headers, and cleanedData from the session
         $this->filename = $recentFile['filename'];
         $this->headers = $recentFile['headers'];
-        $this->previewData = $recentFile['previewData'];
+        $this->cleanedData = $recentFile['cleanedData'];
 
-        logger('Recently used file loaded successfully.', [
-            'filename' => $this->filename,
-            'headers' => $this->headers,
-            'previewData' => $this->previewData,
-        ]);
+        // Check if imputation is needed
+        $this->imputationOptions = $this->generateImputationOptions($this->cleanedData);
+        $this->showImputation = !empty($this->imputationOptions);
 
-        session()->flash('success', 'Recently used file loaded successfully.');
+        session()->flash('success', 'Recently used file loaded successfully!');
     } else {
-        logger('No recently used file found in the session.');
-        session()->flash('error', 'No recently used file found.');
+        session()->flash('error', 'No recently uploaded file found.');
     }
 }
 
-
-    /**
-     * Open the Chart Selector modal and pass data.
-     */
-    public function openChartSelector()
-    {
-        logger('openChartSelector triggered.', [
-            'headers' => $this->headers,
-            'previewData' => $this->previewData,
-        ]);
-    
-        if (empty($this->headers) || empty($this->previewData)) {
-            session()->flash('error', 'Upload a valid file before starting visualization.');
-            logger('Failed to open Chart Selector: Missing headers or data.');
-            return;
-        }
-    
-        // Validate headers and previewData
-        if (!is_array($this->headers) || !is_array($this->previewData)) {
-            session()->flash('error', 'Invalid file structure.');
-            logger('Invalid file structure: headers or previewData is not an array.');
-            return;
-        }
-    
-        $this->dispatch('open-chart-selector', headers: $this->headers, previewData: $this->previewData);
-    
-        logger('Chart Selector opened.', [
-            'headers' => $this->headers,
-            'previewData' => $this->previewData,
-        ]);
-    }
-    
-
-    /**
-     * Close the Chart Selector modal.
-     */
-    public function closeChartSelector()
-    {
-        $this->isChartSelectorOpen = false;
-        logger('Chart Selector closed');
-    }
-
     public function render()
     {
-        logger('Rendering FileUpload component', [
-            'filename' => $this->filename,
-            'isChartSelectorOpen' => $this->isChartSelectorOpen,
-        ]);
+        return view('livewire.file-upload', [
+            'headers' => $this->headers,
+            'cleanedData' => $this->cleanedData,
+            'cleaningSummary' => $this->cleaningSummary,
+            'imputationOptions' => $this->imputationOptions,
+            'showImputation' => $this->showImputation,
 
-        return view('livewire.file-upload');
+        ]);
     }
 }

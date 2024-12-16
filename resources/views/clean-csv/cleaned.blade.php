@@ -126,6 +126,8 @@
 </head>
 <body>
 <livewire:authenticated_navbar />
+<livewire:chart-selector />
+
 <div class="background-blur"></div>
 
 <div class="container mt-10">
@@ -158,7 +160,7 @@
     <!-- Cleaned File Preview -->
     <div class="card mb-4 border-2 border-black">
         <div class="card-header card-header-gradient border-b border-2 border-black">
-            Cleaned File Preview (First 5 Rows)
+            Cleaned File Preview
         </div>
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">
@@ -182,6 +184,7 @@
         </div>
     </div>
 
+
     <!-- Summary of Changes -->
     <div class="card mb-4 border-2 border-black">
         <div class="card-header summary-header border-b border-2 border-black">
@@ -189,6 +192,9 @@
         </div>
         <div class="card-body">
             <ul class="summary-list">
+            <li>
+                <strong>Total Rows in Original File:</strong> {{ $summary['total_rows'] }}
+            </li>
                 <li>
                     <strong>Total Rows Removed:</strong> {{ $summary['total_rows_removed'] }}
                     <span class="badge badge-info">{{ $summary['percentage_rows_removed'] }}%</span>
@@ -209,7 +215,9 @@
             <div class="btn-group mt-3">
                 <a href="{{ route('clean-csv.download') }}" class="btn gradient-btn">Download Cleaned File</a>
                 <a href="{{ route('project') }}" class="btn back-btn">Return to Project</a>
-            </div>
+            
+            </div>           
+         </div>
         </div>
     </div>
 </div>

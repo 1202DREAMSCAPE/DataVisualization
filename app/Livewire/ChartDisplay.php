@@ -454,30 +454,37 @@ public function updatedYAxis()
             session()->flash('error', 'Please select at least one column for the pie chart.');
             return;
         }
-
+    
         $aggregatedData = [];
-
+    
         foreach ($this->data as $item) {
             foreach ($this->selectedColumns as $column) {
                 $label = $this->headers[$column] ?? $column;
-                $value = (int) $item[$column] ?? 0;
-
-                if (!isset($aggregatedData[$label])) {
-                    $aggregatedData[$label] = 0;
+                $value = $item[$column] ?? 0;
+    
+                // Validate if the value is numeric
+                if (is_numeric($value)) {
+                    $value = (float) $value;
+                    if (!isset($aggregatedData[$label])) {
+                        $aggregatedData[$label] = 0;
+                    }
+                    $aggregatedData[$label] += $value;
                 }
-                $aggregatedData[$label] += $value;
             }
         }
-
-        $aggregatedData = array_filter($aggregatedData);
-
+    
+        // Filter out empty values
+        $aggregatedData = array_filter($aggregatedData, fn($val) => $val > 0);
+    
         if (empty($aggregatedData)) {
-            session()->flash('error', 'No valid data for pie chart.');
+            session()->flash('error', 'No valid numerical data for pie chart.');
             return;
         }
-
+    
+        // Generate colors for the chart
         $backgroundColors = $this->generateColors(count($aggregatedData));
-
+    
+        // Set chart data
         $this->chartData = [
             'type' => 'pie',
             'data' => [
@@ -495,16 +502,17 @@ public function updatedYAxis()
                 'plugins' => [
                     'legend' => ['position' => 'top'],
                     'title' => [
-                        'display' => false,
-                        'text' => $this->chartTitle ?: ucfirst($this->chartType) . ' Chart',
+                        'display' => true,
+                        'text' => $this->chartTitle ?: 'Pie Chart Visualization',
                     ]
                 ],
             ],
         ];
-
+    
         logger()->info('Pie Chart Data Prepared:', $this->chartData);
         $this->dispatch('updateChart', $this->chartData);
     }
+    
 
 
     private function generateColors($count)

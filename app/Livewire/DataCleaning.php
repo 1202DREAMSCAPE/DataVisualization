@@ -29,13 +29,31 @@ class DataCleaning extends Component
 
     private function loadFileData($path)
     {
-        // Load CSV or Excel data
-        $data = array_map('str_getcsv', file(storage_path('app/' . $path)));
-        $this->headers = array_shift($data); // Get headers
-        $this->previewData = $data; // Store preview data
-        $this->cleanedData = $data; // Initialize cleaned data
+        $filePath = storage_path('app/' . $path);
+    
+        if (!file_exists($filePath)) {
+            throw new \Exception("File not found: {$filePath}");
+        }
+    
+        // Determine file type
+        $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+    
+        if ($extension === 'csv') {
+            // Read CSV data
+            $data = array_map('str_getcsv', file($filePath));
+    
+            if (empty($data)) {
+                throw new \Exception("The CSV file is empty.");
+            }
+    
+            $this->headers = array_shift($data); // Get headers
+            $this->previewData = $data; // Store preview data
+            $this->cleanedData = $data; // Initialize cleaned data
+        } else {
+            throw new \Exception("Unsupported file type: {$extension}");
+        }
     }
-
+    
     public function openModal()
     {
         $this->isModalOpen = true;
@@ -49,9 +67,10 @@ class DataCleaning extends Component
     public function deleteEmptyRows()
     {
         $this->cleanedData = array_filter($this->cleanedData, function ($row) {
-            return count(array_filter($row)) > 0; // Remove rows with all empty cells
+            return !empty(array_filter($row, fn($value) => $value !== null && $value !== ''));
         });
     }
+    
 
     public function resetData()
     {

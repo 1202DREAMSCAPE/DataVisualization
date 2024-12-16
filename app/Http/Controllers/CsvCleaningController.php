@@ -55,7 +55,7 @@ class CsvCleaningController extends Controller
             }
 
             // Read a preview of the file (first 1000 rows)
-            $previewData = $this->readFile($filePath, 1000, 'public');
+            $previewData = $this->readFile($filePath, 10000, 'public');
 
             // Save the original file path and preview in session
             Session::put('original_file', $filePath);
@@ -136,9 +136,10 @@ class CsvCleaningController extends Controller
 
             // Save summary in session
             Session::put('csv_summary', $summary);
+            
 
             // Update the preview to show cleaned data
-            $cleanedPreviewData = $this->readFile($cleanedFilePath, 1000, 'public');
+            $cleanedPreviewData = $this->readFile($cleanedFilePath, 10000, 'public');
             Session::put('file_preview_cleaned', $cleanedPreviewData);
 
             return redirect()->route('clean-csv.cleaned')->with('success', 'File cleaned successfully!');
@@ -195,7 +196,7 @@ class CsvCleaningController extends Controller
     {
         $fullPath = Storage::disk($disk)->path($filePath);
         $preview = [];
-
+    
         if (!file_exists($fullPath)) {
             Log::error("File not found for preview: {$fullPath}");
             return [
@@ -203,19 +204,16 @@ class CsvCleaningController extends Controller
                 'rows' => [],
             ];
         }
-
+    
         try {
             $extension = pathinfo($fullPath, PATHINFO_EXTENSION);
-
+    
             if (in_array(strtolower($extension), ['csv', 'txt'])) {
                 // Handle CSV/TXT files
                 if (($handle = fopen($fullPath, 'r')) !== false) {
                     $headers = fgetcsv($handle, 0, ',');
                     if ($headers) {
                         while (($data = fgetcsv($handle, 0, ',')) !== false && count($preview) < $limit) {
-                            if (empty(array_filter($data))) {
-                                continue; // Skip blank lines
-                            }
                             $preview[] = array_combine($headers, $data);
                         }
                     }
@@ -232,9 +230,6 @@ class CsvCleaningController extends Controller
                         $headers = $sheet[0];
                         for ($i = 1; $i < count($sheet); $i++) {
                             $row = $sheet[$i];
-                            if (empty(array_filter($row))) {
-                                continue; // Skip blank lines
-                            }
                             $assocRow = array_combine($headers, $row);
                             $preview[] = $assocRow;
                             if (count($preview) >= $limit) {
@@ -249,13 +244,13 @@ class CsvCleaningController extends Controller
         } catch (\Exception $e) {
             Log::error("Error reading file for preview: " . $e->getMessage());
         }
-
+    
         return [
             'headers' => $headers ?? [],
             'rows' => $preview,
         ];
     }
-
+    
     /**
      * Read a file as an associative array.
      */
@@ -263,24 +258,22 @@ class CsvCleaningController extends Controller
     {
         $fullPath = Storage::disk($disk)->path($filePath);
         $data = [];
-
+    
         if (!file_exists($fullPath)) {
             Log::error("File not found for associative read: {$fullPath}");
             return $data;
         }
-
+    
         try {
             $extension = pathinfo($fullPath, PATHINFO_EXTENSION);
-
+    
             if (in_array(strtolower($extension), ['csv', 'txt'])) {
                 // Handle CSV/TXT files
                 if (($handle = fopen($fullPath, 'r')) !== false) {
                     $headers = fgetcsv($handle, 0, ',');
                     if ($headers) {
                         while (($row = fgetcsv($handle, 0, ',')) !== false) {
-                            if (empty(array_filter($row))) {
-                                continue; // Skip blank lines
-                            }
+                            // Preserve rows with null or empty values
                             $data[] = array_combine($headers, $row);
                         }
                     }
@@ -297,9 +290,6 @@ class CsvCleaningController extends Controller
                         $headers = $sheet[0];
                         for ($i = 1; $i < count($sheet); $i++) {
                             $row = $sheet[$i];
-                            if (empty(array_filter($row))) {
-                                continue; // Skip blank lines
-                            }
                             $assocRow = array_combine($headers, $row);
                             $data[] = $assocRow;
                         }
@@ -311,17 +301,17 @@ class CsvCleaningController extends Controller
         } catch (\Exception $e) {
             Log::error("Error reading file as array: " . $e->getMessage());
         }
-
+    
         return $data;
     }
+    
 
     /**
      * Clean the data by removing rows with nulls, non-ASCII characters, duplicates in non-numeric fields, and trimming whitespace.
      */
 /**
  * Clean the data by removing rows with nulls, non-ASCII characters, duplicates in non-numeric fields, and trimming whitespace.
- */
-private function cleanData(array $data, int $originalRowCount)
+ */private function cleanData(array $data, int $originalRowCount)
 {
     $cleanedData = [];
     $rowsRemovedDueToNulls = 0;
@@ -334,8 +324,16 @@ private function cleanData(array $data, int $originalRowCount)
     $duplicateCount = [];
 
     foreach ($data as $row) {
-        // Check for null or empty values
-        if (in_array(null, $row, true) || in_array('', $row, true)) {
+        // Check for null or empty values more explicitly
+        $hasNulls = false;
+        foreach ($row as $cell) {
+            if ($cell === null || $cell === '') {
+                $hasNulls = true;
+                break;
+            }
+        }
+
+        if ($hasNulls) {
             $rowsRemovedDueToNulls++;
             continue; // Remove the row
         }
@@ -384,28 +382,20 @@ private function cleanData(array $data, int $originalRowCount)
     // Adjust duplicate count to avoid over-counting
     $actualDuplicateCount = array_sum($duplicateCount) - count($duplicateCount);
 
-    // Calculate modifications percentage
-    $totalFields = $originalRowCount * (count($data[0] ?? []) ?: 1);
-    $modificationsPercentage = $totalFields > 0 ? ($whitespaceTrimmed / $totalFields) * 100 : 0;
-
-    // Store modification metrics
-    $this->modificationMetrics = [
-        'whitespace_trimmed' => $whitespaceTrimmed,
-        'modifications_percentage' => round($modificationsPercentage, 2),
-    ];
-
-    // Summary
+    // Store cleaning metrics and summary
     $this->cleaningSummary = [
         'rows_removed_due_to_nulls' => $rowsRemovedDueToNulls,
         'rows_removed_due_to_non_ascii' => $rowsRemovedDueToNonAscii,
         'rows_removed_due_to_duplicates' => $actualDuplicateCount,
         'total_rows_removed' => $rowsRemovedDueToNulls + $rowsRemovedDueToNonAscii + $actualDuplicateCount,
         'whitespace_trimmed' => $whitespaceTrimmed,
-        'modifications_percentage' => $this->modificationMetrics['modifications_percentage'],
+        'toal_rows' => $originalRowCount,
+        'modifications_percentage' => round(($whitespaceTrimmed / ($originalRowCount * count($data[0]))) * 100, 2),
     ];
 
     return $cleanedData;
 }
+
 
     /**
      * Check if a value is numeric.
@@ -473,6 +463,8 @@ private function cleanData(array $data, int $originalRowCount)
             'total_rows_removed' => $totalRowsRemoved,
             'percentage_rows_removed' => $originalRowCount > 0 ? round(($totalRowsRemoved / $originalRowCount) * 100, 2) : 0,
             'non_ascii_values_removed' => $nonAsciiRemoved,
+            'total_rows' => $originalRowCount,
+            'remaining_rows' => $cleanedRowCount,
             'whitespace_trimmed' => $whitespaceTrimmed,
             'modifications_percentage' => $modificationsPercentage,
         ];

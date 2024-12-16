@@ -1,0 +1,5 @@
+<?php 
+
+protected $policies = [
+    SavedChart::class => SavedChartPolicy::class,
+];

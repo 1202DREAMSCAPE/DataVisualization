@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Livewire\ChartCustomizer;
+use App\Livewire\ChartSelector;
 use App\Livewire\DataCleaning;
 use App\Http\Controllers\ChartController;
 use App\Http\Controllers\ChartCustomizeController;
@@ -35,6 +36,14 @@ Route::post('/clean-csv/clean', [CsvCleaningController::class, 'cleanCsv'])->nam
 Route::get('/clean-csv/cleaned', [CsvCleaningController::class, 'showCleaned'])->name('clean-csv.cleaned');
 Route::get('/clean-csv/download', [CsvCleaningController::class, 'downloadCleanedCsv'])->name('clean-csv.download');
 
+use App\Livewire\CsvUpload;
+use App\Livewire\CsvPreview;
+use App\Livewire\CsvCleaned;
+
+Route::get('/csv-upload', CsvUpload::class)->name('csv-upload');
+Route::get('/csv-preview', CsvPreview::class)->name('csv-preview');
+Route::get('/csv-cleaned', CsvCleaned::class)->name('csv-cleaned');
+
 
 Route::post('/signup', [SignUpController::class, 'store'])->name('signup.store');
 
@@ -64,7 +73,12 @@ Route::patch('/profile', [ProfilePageController::class, 'update'])
 Route::get('/data-cleaning', DataCleaning::class)
     ->name('data-cleaning');
 
-// Chart Customization
+
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/chart-selector', ChartSelector::class)->name('chart.selector');
+    });
+    
+    
 Route::get('/chart/customize/{type}', [ChartCustomizeController::class, 'customize'])
     ->name('chart.customize');
 

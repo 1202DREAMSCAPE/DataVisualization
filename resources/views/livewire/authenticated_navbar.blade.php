@@ -8,9 +8,6 @@
         @auth
         <!-- Profile Picture and Username -->
         <div class="flex items-center space-x-2">
-            <img src="{{ Storage::url(auth()->user()->profile_picture) }}" 
-                 alt="Profile Picture" 
-                 class="h-10 w-10 rounded-full border object-cover border-gray-300">
             <span class="font-dmSerif font-bold text-lg bg-gradient-to-r from-indigo-400 via-white to-green-300 bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient bg-clip-text text-transparent">
                 {{ auth()->user()->username }}
             </span>

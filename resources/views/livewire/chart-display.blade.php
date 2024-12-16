@@ -100,22 +100,25 @@
                             </select>
                         </div>
                     </div>
-                @elseif ($chartType === 'pie')
-                    <!-- Pie Chart Controls -->
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Select Data to Show</label>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach ($headers as $key => $label)
-                                @if ($key !== 'A')
-                                    <label class="inline-flex items-center bg-gray-100 rounded-md px-2 py-1">
-                                        <input type="checkbox" wire:model.live="selectedColumns" value="{{ $key }}" class="form-checkbox mr-2">
-                                        <span>{{ $label }}</span>
-                                    </label>
-                                @endif
-                            @endforeach
-                        </div>
-                        @error('selectedColumns') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
+                    @elseif ($chartType === 'pie')
+    <!-- Pie Chart Controls -->
+    <div>
+        <label class="block text-gray-700 text-sm font-bold mb-2">Select Data to Show</label>
+        <div class="flex flex-wrap gap-2">
+            @foreach ($headers as $key => $label)
+                @if ($key !== 'A')
+                    <label class="inline-flex items-center bg-gray-100 rounded-md px-2 py-1">
+                        <input type="checkbox" wire:model.live="selectedColumns" value="{{ $key }}" class="form-checkbox mr-2">
+                        <span>{{ $label }}</span>
+                    </label>
+                @endif
+            @endforeach
+        </div>
+        @error('selectedColumns') 
+            <p class="text-red-500 text-xs mt-1">{{ $message }}</p> 
+        @enderror
+    </div>
+
                  @elseif ($chartType === 'gauge')
                     <!-- Gauge Chart Controls -->
                     <div>

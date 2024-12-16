@@ -1,132 +1,90 @@
-<div class="p-6 bg-white rounded-lg shadow">
-    @if (!$filename)
+<div class="p-4 bg-white rounded-lg shadow">
+    @if (empty($cleanedData))
         <!-- File Upload Section -->
-        <div
-            class="border-2 border-dashed border-gray-400 rounded-lg p-6 flex items-center justify-center cursor-pointer"
-            wire:loading.class="opacity-50"
-        >
+        <div class="border-2 border-dashed border-gray-400 rounded-md p-4 flex items-center justify-center cursor-pointer"
+            wire:loading.class="opacity-50">
             <input type="file" wire:model="file" class="hidden" id="file-upload" />
             <label for="file-upload" class="text-center w-full">
-                <p class="text-lg font-bold text-gray-700">Click to Upload File Here</p>
-                <p class="text-sm text-gray-500">CSV/XLSX files only</p>
+                <p class="text-sm font-semibold text-gray-700">Click to Upload File</p>
+                <p class="text-xs text-gray-500">CSV/XLSX files only</p>
             </label>
         </div>
 
-        @error('file')
-        <p class="text-red-500 text-sm mt-2 text-center">{{ $message }}</p>
-        @enderror
-
         <!-- Instructions Section -->
-        <div class="mt-4 text-center">
-            <h3 class="text-gray-700 font-semibold text-lg">How to Use:</h3>
-            <ol class="text-sm text-gray-600 mt-2 space-y-2">
+        <div class="mt-2 text-center">
+            <h3 class="text-gray-700 font-medium text-sm">How to Use:</h3>
+            <ol class="text-xs text-gray-600 mt-1 space-y-1">
                 <li>1. Click on the upload area to upload.</li>
-                <li>2. Only CSV or XLSX files are supported for preview and visualization.</li>
-                <li>3. After uploading, preview your data and start the visualization process.</li>
+                <li>2. Only CSV or XLSX files are supported.</li>
+                <li>3. Handle missing values if prompted.</li>
+                <li>4. Preview your cleaned data and start visualizing.</li>
             </ol>
         </div>
 
-      <!-- Buttons Section -->
-<div class="mt-6 flex justify-center gap-4">
-    <!-- Open Recently Used File Button -->
-    <button
-        wire:click="uploadRecentlyUsedFile"
-        class="bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded-lg shadow font-semibold"
-    >
-        Open Recently Used File
-    </button>
-</div>
-
-<!-- Success/Error Messages -->
-<div class="mt-4 text-center">
-    @if (session()->has('success'))
-        <div class="text-green-500 font-semibold">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if (session()->has('error'))
-        <div class="text-red-500 font-semibold">
-            {{ session('error') }}
-        </div>
-    @endif
-</div>
-
-    @else
-        <!-- File Preview Section -->
-        <div class="border border-gray-300 rounded-lg p-4">
-            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-                <h2 class="text-lg font-bold text-center sm:text-left">
-                    Previewing File: <span class="text-blue-500">{{ $filename }}</span>
-                </h2>
-                <!-- Start Visualizing Button -->
-                <button wire:click="openChartSelector"
-                    class="w-full sm:w-auto bg-gradient-to-r from-red-400 via-yellow-400 to-blue-500 text-white px-4 py-2 rounded-lg shadow font-semibold">
-                    Start Visualizing
-                </button>
-            </div>
-
-            @if (!empty($headers) && !empty($previewData))
-                <!-- Mobile View (Card Layout) -->
-                <div class="block sm:hidden space-y-3">
-                    @foreach ($previewData as $index => $row)
-                        <div class="bg-white rounded-lg border border-gray-200 p-3">
-                            <div class="font-semibold text-gray-700 mb-2 text-sm">Row {{ $loop->iteration }}</div>
-                            @foreach ($headers as $headerIndex => $header)
-                                <div class="flex justify-between py-1.5 border-b border-gray-100 last:border-0 text-sm">
-                                    <span class="text-gray-600 font-medium">{{ $header }}:</span>
-                                    <span class="text-gray-800 ml-4 break-words">{{ $row[$headerIndex] }}</span>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endforeach
-                </div>
-
-                <!-- Desktop View (Original Table) -->
-                <div class="hidden sm:block overflow-x-auto overflow-y-auto max-h-96 border border-gray-300 rounded-lg p-4 bg-gray-50">
-                    <table class="min-w-full text-sm text-left">
-                        <thead class="bg-gray-100">
-    <tr>
-        <!-- Removed the # column -->
-        @foreach ($headers as $header)
-            <th class="py-2 px-4 text-gray-700 font-semibold">{{ $header }}</th>
-        @endforeach
-    </tr>
-</thead>
-<tbody>
-    @foreach ($previewData as $index => $row)
-        <tr>
-            <!-- Removed the # column -->
-            @foreach ($row as $cell)
-                <td class="py-2 px-4 text-gray-600">{{ $cell }}</td>
-            @endforeach
-        </tr>
-    @endforeach
-</tbody>
-
-                    </table>
-                </div>
-            @else
-                <!-- Fallback if no data is available -->
-                <div class="overflow-y-auto max-h-96 border border-gray-300 rounded-lg p-4 bg-gray-50">
-                    <p class="text-gray-700 text-sm text-center">
-                        No preview data available. Please check the uploaded file.
-                    </p>
-                </div>
-            @endif
-        </div>
-
         <!-- Buttons Section -->
-<div class="mt-6 flex flex-col sm:flex-row justify-center gap-3 sm:space-x-4 sm:gap-0">
-    <!-- Upload New File Button -->
-    <button
-        wire:click="$set('filename', null)"
-        class="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-lg border border-gray-300 shadow"
-    >
-        Upload a New File
-    </button>
-</div>
+        <div class="mt-4 flex justify-center gap-2">
+            <button
+                wire:click="uploadRecentlyUsedFile"
+                class="bg-pink-500 hover:bg-pink-600 text-white px-4 py-1 rounded-md shadow text-xs font-semibold"
+            >
+                Open Recently Used File
+            </button>
+        </div>
+        @error('file')
+            <p class="text-red-500 text-xs mt-2 text-center">{{ $message }}</p>
+        @enderror
+    @else
+        <!-- File Details -->
+        <h2 class="text-sm font-medium mb-4">File: <span class="text-blue-500">{{ $filename }}</span></h2>
 
+        <!-- Imputation Dropdown -->
+        @if ($showImputation)
+    <div class="mb-4">
+        <label for="imputationMethod" class="block text-sm font-medium text-gray-700">Handle Missing Values:</label>
+        <select id="imputationMethod" wire:model="imputationMethod" wire:change="applyImputation"
+            class="mt-1 block w-full border-gray-300 rounded-md">
+            <option value="mean">Mean</option>
+            <option value="median">Median</option>
+            <option value="mode">Mode</option>
+            <option value="standard_deviation">Standard Deviation</option>
+        </select>
+        <p class="mt-1 text-xs text-gray-500">
+            Select a method to handle missing values dynamically. Data preview will update automatically.
+        </p>
+    </div>
+@endif
+
+
+        <!-- Cleaned Data Preview -->
+        <div class="overflow-x-auto max-h-48 border border-gray-300 rounded-md p-2 bg-gray-50">
+            <table class="min-w-full text-xs text-left">
+                <thead class="bg-gray-100">
+                    <tr>
+                        @foreach ($headers as $header)
+                            <th class="py-1 px-2 text-gray-700 font-medium">{{ $header }}</th>
+                        @endforeach
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($cleanedData as $row)
+                        <tr>
+                            @foreach ($row as $cell)
+                                <td class="py-1 px-2 text-gray-600">{{ $cell ?? '-' }}</td>
+                            @endforeach
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Cleaning Summary -->
+        <h4 class="text-sm font-medium mt-4">Cleaning Summary</h4>
+        <ul class="text-xs text-gray-600">
+            <li>Total Rows: {{ $cleaningSummary['total_rows'] ?? '0' }}</li>
+            <li>Cleaned Rows: {{ $cleaningSummary['cleaned_rows'] ?? '0' }}</li>
+            <li>Rows Removed (Nulls): {{ $cleaningSummary['rows_removed_due_to_nulls'] ?? '0' }}</li>
+            <li>Rows Removed (Duplicates): {{ $cleaningSummary['rows_removed_due_to_duplicates'] ?? '0' }}</li>
+        </ul>
     @endif
 
     <!-- Chart Selector -->

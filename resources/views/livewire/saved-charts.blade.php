@@ -5,6 +5,9 @@
                 <div class="bg-white rounded-lg shadow-lg p-6 relative h-[400px]" 
                      data-chart-index="{{ $chart['id'] }}"
                      x-data="{
+                         showModal: false,
+                         openModal() { this.showModal = true; },
+                         closeModal() { this.showModal = false; },
                          init() {
                              this.$nextTick(() => {
                                  const ctx = this.$refs.canvas.getContext('2d');
@@ -14,7 +17,7 @@
                                  window.savedChartInstances = window.savedChartInstances || [];
 
                                  const chartType = {{ json_encode($chart['data']['type'] ?? '') }};
-                                const chartData = {{ json_encode($chart['data'] ?? []) }};
+                                 const chartData = {{ json_encode($chart['data'] ?? []) }};
 
                                  const options = {
                                      ...chartData.options || {},
@@ -64,14 +67,6 @@
                                          });
                                          break;
                                     
-                                    case 'polarArea':
-                                         window.savedChartInstances[{{ $chart['id'] }}] = new Chart(ctx, {
-                                             type: chartType,
-                                             data: chartData.data,
-                                             options: options
-                                         });
-                                         break;
-
                                      case 'gauge':
                                          const gaugeData = chartData.data;
                                          window.savedChartInstances[{{ $chart['id'] }}] = new Chart(ctx, {
@@ -133,18 +128,39 @@
 
                     <!-- Chart Type Label -->
                     @if (isset($chart['data']['type']))
-                        <div class="absolute top-2 left-2 bg-gray-800 font-dmSerif text-white text-xs px-2 py-1 rounded text-center items-center  transition-transform bg-gradient-to-br from-pink-600 via-blue-600 to-red-500 bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
-                            {{ ucfirst($chart['data']['type']) }} Chart
+                        <div class="absolute top-2 left-2 flex items-center space-x-2">
+                            <!-- Chart Type Label -->
+                            <div class="bg-gray-800 font-dmSerif text-white text-xs px-2 py-1 rounded text-center items-center transition-transform bg-gradient-to-br from-pink-600 via-blue-600 to-red-500 bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
+                                {{ ucfirst($chart['data']['type']) }} Chart
+                            </div>
+
+                            <!-- Plus Button -->
+                            <button @click="openModal" class="bg-green-500 text-white px-2 rounded hover:bg-green-600">
+                                +
+                            </button>
                         </div>
                     @endif
 
-                    <div class="h-[300px] mt-3">
+                    <div class="h-[300px]">
                         <canvas x-ref="canvas" id="chart-{{ $chart['id'] }}"></canvas>
                     </div>
-                    
-                     <h3 class="text-lg font-bold text-center">{{ $chart['title'] ?? 'Untitled Chart' }}</h3>
-                     <h3 class="text-md font-semibold text-center"> {{ $chart['remarks'] ?? 'None' }}</h3>
 
+                    <!-- Chart Title -->
+                    <h3 class="text-lg font-bold text-center">{{ $chart['title'] ?? 'Untitled Chart' }}</h3>
+                    <h2 class="text-md font-semibold text-center truncate max-w-full" title="{{ $chart['remarks'] ?? 'None' }}">
+                        {{ $chart['remarks'] ?? 'None' }}
+                    </h2>
+
+                    <!-- Modal -->
+                    <div x-show="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                        <div class="bg-white p-6 rounded-lg shadow-lg w-[90%] md:w-[60%]">
+                            <h2 class="text-xl font-bold mb-4">Details for: {{ $chart['title'] ?? 'Untitled Chart' }}</h2>
+                            <p class="mb-4">{{ $chart['remarks'] ?? 'No additional remarks.' }}</p>
+                            <button @click="closeModal" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                                Close
+                            </button>
+                        </div>
+                    </div>
                 </div>
             @endforeach
         </div>

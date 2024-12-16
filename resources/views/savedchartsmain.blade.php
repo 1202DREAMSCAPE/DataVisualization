@@ -32,6 +32,14 @@
         }
     }
 
+    @media (max-width: 640px) {
+        .saved-charts {
+            font-size: 1.25rem; /* Adjust font size for smaller screens */
+            padding: 8px 16px; /* Reduce padding on smaller screens */
+            border-radius: 15px; /* Slightly less rounded corners */
+        }
+    }
+
     .saved-charts {
         background: linear-gradient(to right, #ff69b4, #db7093); /* Adjust the colors as needed */
         color: white; /* Adjust text color as needed */
@@ -77,12 +85,11 @@
 
     <!-- Main Content Area -->
     <div class="container mx-auto p-6">
-        <!-- Title Section with Rename Modal -->
-        <div x-data="{ showModal: false, newTitle: 'Saved Charts', tempTitle: '' }" x-cloak class="flex items-center justify-between mb-6">
-            <div class="flex items-center space-x-4 saved-charts">
-                <h2 class="text-3xl font-serif font-bold" x-text="newTitle"></h2>
-                
-            </div>
+    <!-- Title Section with Rename Modal -->
+    <div x-data="{ showModal: false, newTitle: 'Saved Charts', tempTitle: '' }" x-cloak class="flex items-center justify-between mb-6">
+        <div class="flex items-center space-x-4 saved-charts text-xl sm:text-3xl font-serif font-bold">
+            <h2 class="text-center w-full sm:w-auto" x-text="newTitle"></h2>
+        </div>
             <div class="flex items-center space-x-4">
     <!-- Create New Chart button -->
 <button @click="window.location.href='/project'"
@@ -116,7 +123,6 @@
 
     @livewireScripts
 
-
     <script>
         
         async function generatePDF() {
@@ -124,7 +130,7 @@
         const { jsPDF } = window.jspdf;
 
         const doc = new jsPDF({
-            orientation: 'landscape',
+            orientation: 'portrait',
             unit: 'px',
             format: 'a4',
         });
@@ -138,22 +144,23 @@
             return;
         }
 
-        // const logoURL = "{{ asset('images/vizora.png') }}";
-        const chartsPerRow = 3;
-        const rowsPerPage = 2;
-        const margin = 20;
+        const chartsPerRow = 2;
+        const rowsPerPage = 3;
+        const margin = 10;
         const chartWidth = (pageWidth - margin * (chartsPerRow + 1)) / chartsPerRow;
         const chartHeight = (pageHeight - margin * (rowsPerPage + 2) - 60) / rowsPerPage;
 
         let currentChart = 0;
 
-        while (currentChart < charts.length) {
-            // // Add logo
-            // const img = new Image();
-            // img.src = logoURL;
-            // await new Promise((resolve) => (img.onload = resolve));
-            // doc.addImage(img, 'PNG', pageWidth - 80, 20, 60, 40);
+        // Add heading to the first page
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Reports', pageWidth / 2, margin, { align: 'center' });
 
+        let posY = margin + 40;
+
+        // Generate chart pages
+        while (currentChart < charts.length) {
             for (let row = 0; row < rowsPerPage && currentChart < charts.length; row++) {
                 for (let col = 0; col < chartsPerRow && currentChart < charts.length; col++) {
                     const chartContainer = charts[currentChart];
@@ -161,12 +168,16 @@
 
                     if (!canvas) continue;
 
-                    // Temporarily hide "X" button and label
+                    // Temporarily hide unwanted elements
                     const deleteButton = chartContainer.querySelector('form');
-                    const chartLabel = chartContainer.querySelector('.chart-label'); // Assuming your labels have a class
+                    const chartLabel = chartContainer.querySelector('.chart-label');
+                    const chartRemarks = chartContainer.querySelector('h3.text-md');
+                    const plusButton = chartContainer.querySelector('button.bg-green-500'); // Selector for the + button
 
                     if (deleteButton) deleteButton.style.display = 'none';
                     if (chartLabel) chartLabel.style.display = 'none';
+                    if (chartRemarks) chartRemarks.style.display = 'none';
+                    if (plusButton) plusButton.style.display = 'none';
 
                     // Render chart with html2canvas
                     const renderedCanvas = await html2canvas(chartContainer, {
@@ -174,9 +185,11 @@
                         backgroundColor: '#ffffff',
                     });
 
-                    // Restore "X" button and label visibility
+                    // Restore element visibility
                     if (deleteButton) deleteButton.style.display = '';
                     if (chartLabel) chartLabel.style.display = '';
+                    if (chartRemarks) chartRemarks.style.display = '';
+                    if (plusButton) plusButton.style.display = '';
 
                     const imgData = renderedCanvas.toDataURL('image/png');
                     const aspectRatio = renderedCanvas.width / renderedCanvas.height;
@@ -206,13 +219,43 @@
             }
         }
 
-        doc.save('VizOra_Charts.pdf');
+        // Add remarks page
+        doc.addPage();
+
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Charts and Remarks', pageWidth / 2, margin, { align: 'center' });
+
+        posY = margin + 40;
+
+        for (const chartContainer of charts) {
+            const title = chartContainer.querySelector('h3.text-lg')?.innerText || 'Untitled Chart';
+            const remarks = chartContainer.querySelector('h3.text-md')?.innerText || 'No remarks available';
+
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Chart Title: ${title}`, margin, posY);
+            posY += 15;
+
+            doc.setFont('helvetica', 'normal');
+            const lines = doc.splitTextToSize(remarks, pageWidth - margin * 2);
+            doc.text(lines, margin, posY);
+            posY += lines.length * 12;
+
+            posY += 10; // Add spacing between remarks
+
+            if (posY > pageHeight - margin) {
+                doc.addPage();
+                posY = margin + 40;
+            }
+        }
+
+        doc.save('VizOra_Charts_and_Remarks.pdf');
     } catch (error) {
         console.error('Error generating PDF:', error);
         alert('Failed to generate the PDF. Please try again.');
     }
 }
-
 
 
 

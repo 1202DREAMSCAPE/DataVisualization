@@ -1,6 +1,7 @@
 <div>
     <!-- File Upload Section -->
     @if (!$filename)
+    
         <div class="border-2 border-dashed border-gray-400 rounded-lg p-6 flex items-center justify-center">
             <input type="file" wire:model="file" class="hidden" id="file-upload" />
             <label for="file-upload" class="text-center w-full cursor-pointer">

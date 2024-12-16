@@ -46,15 +46,38 @@ class SavedCharts extends Component
         ->toArray();
     }
 
-    public function deleteChart($chartId)
-    {
-        $chart = SavedChart::find($chartId);
+    public function confirmDelete($chartId)
+{
+    $this->deletingChartId = $chartId;
+}
 
+public function deleteChart()
+{
+    if ($this->deletingChartId) {
+        $chart = SavedChart::find($this->deletingChartId);
         if ($chart) {
             $chart->delete();
-            $this->emit('chartDeleted', $chartId);
+            $this->deletingChartId = null;
+            $this->loadCharts();
+            $this->emit('chartDeleted');
+            session()->flash('message', 'Chart deleted successfully.');
         }
     }
+}
+
+public function openChartSelector()
+{
+    if (empty($this->headers) || empty($this->previewData)) {
+        session()->flash('error', 'Upload a valid file before starting visualization.');
+        return;
+    }
+
+    $this->dispatch('open-chart-selector', [
+        'headers' => $this->headers,
+        'previewData' => $this->previewData,
+    ]);
+}
+
 
     public function saveChart($chartData)
     {
