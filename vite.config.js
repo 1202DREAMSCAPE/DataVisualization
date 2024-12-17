@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import ApexCharts from 'apexcharts';
+//import ApexCharts from 'apexcharts';
 
 
 export default defineConfig({
@@ -21,4 +21,10 @@ export default defineConfig({
     esbuild: {
         loader: 'js', // Ensure .js files are treated as JavaScript
     },
+    define: {
+        'window': {}, // Polyfill window object
+      },
+      ssr: {
+        noExternal: ['apexcharts'], // Exclude ApexCharts from SSR processing
+      },
 });
