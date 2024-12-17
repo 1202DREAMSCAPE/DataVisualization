@@ -67,16 +67,6 @@
             <li>Rows Removed (Nulls): {{ $cleaningSummary['rows_removed_due_to_nulls'] ?? '0' }}</li>
             <li>Rows Removed (Duplicates): {{ $cleaningSummary['rows_removed_due_to_duplicates'] ?? '0' }}</li>
         </ul>
-        <h4 class="text-sm font-medium mt-4">Missing Values Summary</h4>
-<ul class="text-xs text-gray-600">
-    @if (!empty($missingValuesSummary))
-        @foreach ($missingValuesSummary as $column => $count)
-            <li>{{ $column }}: {{ $count }} missing values</li>
-        @endforeach
-    @else
-        <li>No missing values found in any column.</li>
-    @endif
-</ul>
 
     @endif
 
