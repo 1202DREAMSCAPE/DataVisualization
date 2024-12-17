@@ -133,26 +133,15 @@
                         <canvas x-ref="canvas" id="chart-{{ $chart['id'] }}"></canvas>
                     </div>
 
-                     <!-- Generate Remarks Button or AI Insights -->
-                     <div class="mt-4 text-center">
-                        @if (!isset($remarks[$chart['id']]))
-                            <!-- Show the button if remarks are not generated yet -->
-                            <button
-                                wire:click="generateRemarks({{ $chart['id'] }})"
-                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow"
-                            >
-                                Generate Remarks
-                            </button>
-                        @else
-                            <!-- Show AI Insights if remarks are generated -->
-                            <div class="mt-4 text-gray-700">
-                                <h4 class="font-semibold">AI Insights:</h4>
-                                <p class="text-sm">
-                                    {{ $remarks[$chart['id']] }}
-                                </p>
-                            </div>
-                        @endif
-                    </div>
+            <!-- Replace the existing Generate Remarks button with this -->
+            <div class="mt-4 text-center">
+                <a 
+                    href="{{ route('charts.remarks.show', $chart['id']) }}"
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow inline-block"
+                >
+                    Generate Remarks
+                </a>
+            </div>
                 </div>
             @endforeach
         </div>

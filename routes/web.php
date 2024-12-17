@@ -11,8 +11,10 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfilePageController;
 use App\Http\Controllers\CsvCleaningController;
 use App\Http\Controllers\DeleteController;
-
-
+use App\Http\Controllers\GeminiController;
+use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\GeminiAIController;
+use App\Http\Controllers\ChartRemarksController;
 // Landing Page
 Route::view('/', 'landing-page')->name('landing-page');
 
@@ -36,7 +38,14 @@ Route::get('/clean-csv/cleaned', [CsvCleaningController::class, 'showCleaned'])-
 Route::get('/clean-csv/download', [CsvCleaningController::class, 'downloadCleanedCsv'])->name('clean-csv.download');
 
 
+use Illuminate\Http\Request;
+
+Route::post('/gemini-respond', [GeminiAIController::class, 'respond'])->name('gemini.respond');
+
+Route::view('/geminitest', 'geminitest')->name('geminitest');
+Route::get('/charts/{chart}/remarks', [ChartRemarksController::class, 'show'])->name('charts.remarks.show');
 Route::post('/signup', [SignUpController::class, 'store'])->name('signup.store');
+
 
 // Dashboard
 Route::view('/login', 'login')
