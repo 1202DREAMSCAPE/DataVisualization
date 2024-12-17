@@ -38,7 +38,7 @@
         <h2 class="text-sm font-medium mb-4">File: <span class="text-blue-500">{{ $filename }}</span></h2>
 
         <!-- Cleaned Data Preview -->
-        <div class="overflow-x-auto max-h-48 border border-gray-300 rounded-md p-2 bg-gray-50">
+        <div class="overflow-auto max-h-[calc(100vh-400px)] max-w-[calc(100vw-100px)] w-full border border-gray-300 rounded-md p-2 bg-gray-50">
             <table class="min-w-full text-xs text-left">
                 <thead class="bg-gray-100">
                     <tr>
@@ -99,7 +99,4 @@
             </a>
         </div>
     @endif
-
-    <!-- Imputation Dropdown -->
-   
 </div>

@@ -67,7 +67,6 @@
                         <div>
                             <input name="password" id="password" type="password" placeholder="Password"
                                 class="w-full border-[1px] border-darkgray rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring focus:ring-orange-300" required />
-                            @error('password') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
                         <div>
@@ -75,6 +74,8 @@
                                 class="w-full border-[1px] border-darkgray rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring focus:ring-orange-300" required />
                         </div>
                     </div>
+                    @error('password') <span class="text-red-500 text-center text-xs">{{ $message }}</span> @enderror
+
 
                     <!-- Password Requirements -->
                     <p class="text-xs text-center text-orange-500 mb-3">Note: Password must be at least 8 characters long.</p>
