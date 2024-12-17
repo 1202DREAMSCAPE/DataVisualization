@@ -41,6 +41,7 @@
                     <!-- Name -->
                     <div class="mb-2">
                         <input name="name" id="name" type="text" placeholder="Name"
+                            data-storage-key="signup_name"
                             class="w-full border-[1px] border-darkgray rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring focus:ring-orange-300" required />
                         @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
@@ -48,6 +49,7 @@
                     <!-- Email -->
                     <div class="mb-2">
                         <input name="email" id="email" type="email" placeholder="Email Address"
+                            data-storage-key="signup_email"
                             class="w-full border-[1px] border-darkgray rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring focus:ring-orange-300" required />
                         @error('email') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
@@ -55,6 +57,7 @@
                     <!-- Username -->
                     <div class="mb-2">
                         <input name="username" id="username" type="text" placeholder="Username"
+                            data-storage-key="signup_username"
                             class="w-full border-[1px] border-darkgray rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring focus:ring-orange-300" required />
                         @error('username') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
@@ -73,9 +76,12 @@
                         </div>
                     </div>
 
+                    <!-- Password Requirements -->
+                    <p class="text-xs text-center text-orange-500 mb-3">Note: Password must be at least 8 characters long.</p>
+
                     <!-- Data Privacy Agreement -->
                     <div class="flex items-center mb-3">
-                        <input id="acceptPrivacy" type="checkbox" class="form-checkbox h-4 w-4 text-orange-600 mr-2" disabled />
+                        <input id="acceptPrivacy" type="checkbox" class="form-checkbox disabled h-4 w-4 text-orange-600 mr-2" disabled />
                         <label for="acceptPrivacy" class="text-sm text-gray-700">
                             By signing up, you confirm that <a href="#" class="text-orange-500 hover:underline" onclick="showModal()">data privacy</a> secures your account by ensuring only authorized access to your data.
                         </label>
@@ -134,12 +140,59 @@
         function agreeToPrivacy() {
             hideModal();
             const checkbox = document.getElementById('acceptPrivacy');
-            checkbox.disabled = false;
+            checkbox.disabled = true;
             checkbox.checked = true;
-
             // Disable further manual interaction
             checkbox.setAttribute('readonly', 'true');
         }
+    </script>
+
+    <!-- Form Persistence Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.querySelector('form');
+
+            // Function to save input values to localStorage
+            const saveInput = (event) => {
+                const input = event.target;
+                const storageKey = input.getAttribute('data-storage-key');
+                if (storageKey) {
+                    localStorage.setItem(storageKey, input.value);
+                }
+            };
+
+            // Function to load input values from localStorage
+            const loadInput = (input) => {
+                const storageKey = input.getAttribute('data-storage-key');
+                if (storageKey) {
+                    const savedValue = localStorage.getItem(storageKey);
+                    if (savedValue) {
+                        input.value = savedValue;
+                    }
+                }
+            };
+
+            // Select all inputs with data-storage-key
+            const inputs = form.querySelectorAll('input[data-storage-key]');
+
+            // Load saved data for each input
+            inputs.forEach(input => loadInput(input));
+
+            // Add event listeners to save data on input
+            inputs.forEach(input => {
+                input.addEventListener('input', saveInput);
+            });
+
+            // Clear localStorage on form submit
+            form.addEventListener('submit', () => {
+                inputs.forEach(input => {
+                    const storageKey = input.getAttribute('data-storage-key');
+                    if (storageKey) {
+                        localStorage.removeItem(storageKey);
+                    }
+                });
+            });
+        });
     </script>
 </body>
 
