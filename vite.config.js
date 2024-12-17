@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
+import ApexCharts from 'apexcharts';
+
 
 export default defineConfig({
     plugins: [

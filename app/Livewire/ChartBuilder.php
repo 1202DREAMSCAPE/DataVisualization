@@ -6,21 +6,22 @@ use Livewire\Component;
 
 class ChartBuilder extends Component
 {
-    public $headers = []; // Array of data headers
-    public $data = [];    // Chart data
-    public $chartType; // Selected chart type
-    public $xAxis = null;     // X-Axis selection
-    public $yAxis = null;     // Y-Axis selection
-    public $selectedCategories = []; // Selected categories for radar/polarArea
-    public $selectedMetric = null;   // Selected metric for radialBar
-    public $chartData = [];   
-    public $sample="hatdog";       // Data sent to ApexCharts
+    public $headers = [];
+    public $data = [];
+    public $chartType = '';
+    public $xAxis = null;
+    public $yAxis = null;
+    public $selectedCategories = [];
+    public $selectedMetric = null;
+    public $chartData = [];
+    public $id; // Unique ID for charts
 
     public function mount($headers = [], $data = [], $chartType = null)
     {
         $this->headers = $headers;
         $this->data = $data;
-        $this->chartType ?? '';  // Set chart type passed from the controller
+        $this->chartType = $chartType ?: '';
+        $this->id = uniqid(); // Generate a unique ID for the chart
         $this->prepareChartData();
     }
 
@@ -30,62 +31,73 @@ class ChartBuilder extends Component
         $this->prepareChartData();
     }
 
-    public function updatedXAxis()
+    public function updated($property)
     {
-        $this->prepareChartData();
-    }
-
-    public function updatedYAxis()
-    {
-        $this->prepareChartData();
-    }
-
-    public function updatedSelectedCategories()
-    {
-        $this->prepareChartData();
-    }
-
-    public function updatedSelectedMetric()
-    {
-        $this->prepareChartData();
-    }
-
-    private function prepareChartData()
-    {
-        // Ensure a chart type is selected
-        if (!$this->chartType) return;
-
-        // Prepare data based on the selected chart type
-        switch ($this->chartType) {
-            case 'bar':
-            case 'line':
-                $this->prepareBarOrLineChartData();
-                break;
-            case 'pie':
-                $this->preparePieChartData();
-                break;
-            case 'radar':
-                $this->prepareRadarChartData();
-                break;
-            case 'polarArea':
-                $this->preparePolarAreaChartData();
-                break;
-            case 'radialBar': // For Gauge charts
-                $this->prepareRadialBarChartData();
-                break;
+        if ($this->chartType && (
+            ($this->chartType === 'pie' && $this->xAxis) ||
+            (in_array($this->chartType, ['bar', 'line']) && $this->xAxis && $this->yAxis) ||
+            ($this->chartType === 'radialBar' && $this->selectedMetric) ||
+            (in_array($this->chartType, ['radar', 'polarArea']) && !empty($this->selectedCategories))
+        )) {
+            $this->prepareChartData();
         }
+    }
+    
 
-        // Dispatch the chart data to the frontend
+
+private function prepareChartData()
+{
+    if (!$this->chartType) return;
+
+    // Validate required fields based on chart type
+    if (in_array($this->chartType, ['bar', 'line']) && (!$this->xAxis || !$this->yAxis)) {
+        return; // Wait until both X and Y axes are selected
+    }
+
+    if ($this->chartType === 'pie' && !$this->xAxis) {
+        return; // Wait until X-Axis is selected
+    }
+
+    if ($this->chartType === 'radialBar' && !$this->selectedMetric) {
+        return; // Wait until metric is selected
+    }
+
+    if (in_array($this->chartType, ['radar', 'polarArea']) && empty($this->selectedCategories)) {
+        return; // Wait until categories are selected
+    }
+
+    // Prepare the chart data based on the chart type
+    switch ($this->chartType) {
+        case 'bar':
+        case 'line':
+            $this->prepareBarOrLineChartData();
+            break;
+        case 'pie':
+            $this->preparePieChartData();
+            break;
+        case 'radar':
+            $this->prepareRadarChartData();
+            break;
+        case 'polarArea':
+            $this->preparePolarAreaChartData();
+            break;
+        case 'radialBar':
+            $this->prepareRadialBarChartData();
+            break;
+    }
+
+    // Dispatch the event only if chart data is valid
+    if (!empty($this->chartData['series'])) {
         $this->dispatch('update-chart', [
-            'chart' => [
-                'type' => $this->chartType,
-            ],
-            'series' => $this->chartData['series'] ?? [],
+            'chart' => ['type' => $this->chartType],
+            'series' => $this->chartData['series'],
             'xaxis' => $this->chartData['xaxis'] ?? [],
             'labels' => $this->chartData['labels'] ?? [],
             'options' => $this->chartData['options'] ?? [],
+            'id' => $this->id,
         ]);
     }
+}
 
     private function prepareBarOrLineChartData()
     {
@@ -140,7 +152,7 @@ class ChartBuilder extends Component
 
         $this->chartData = [
             'series' => $datasets,
-            'labels' => array_keys($this->headers),
+            'labels' => array_intersect_key($this->headers, array_flip($this->selectedCategories)),
             'options' => [
                 'title' => [
                     'text' => 'Radar Chart',
@@ -192,5 +204,4 @@ class ChartBuilder extends Component
     {
         return view('livewire.chart-builder');
     }
-
 }

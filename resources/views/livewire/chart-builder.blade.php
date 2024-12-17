@@ -1,22 +1,24 @@
 <div class="p-6 bg-white rounded-lg shadow-lg">
     <h2 class="text-xl font-bold mb-4">Build Your Chart</h2>
+
     <!-- Chart Type Selection -->
     <div class="mb-4">
         <h3 class="text-sm font-semibold">Select Chart Type</h3>
         <div class="flex gap-4 mt-2">
-        @foreach ([
-        'bar' => 'Bar',
-        'pie' => 'Pie',
-        'line' => 'Line',
-        'radar' => 'Radar',
-        'polarArea' => 'Polar Area',
-        'radialBar' => 'Gauge'
+            @foreach ([
+                'bar' => 'Bar',
+                'pie' => 'Pie',
+                'line' => 'Line',
+                'radar' => 'Radar',
+                'polarArea' => 'Polar Area',
+                'radialBar' => 'Gauge'
             ] as $type => $label)
-        <button wire:click="selectChartType('{{ $type }}')"
-                class="px-4 py-2 text-sm rounded-md {{ $chartType === $type ? 'bg-blue-500 text-white' : 'bg-gray-100' }}">
-            {{ $label }}
-        </button>
-    @endforeach
+                <button 
+                    wire:click="selectChartType('{{ $type }}')" 
+                    class="px-4 py-2 text-sm rounded-md {{ $chartType === $type ? 'bg-blue-500 text-white' : 'bg-gray-100' }}">
+                    {{ $label }}
+                </button>
+            @endforeach
         </div>
     </div>
 
@@ -79,44 +81,58 @@
 
     <!-- Chart Preview -->
     <div class="mt-4">
-        <div class="bg-gray-50 p-4 rounded-lg">
-            <div id="chartCanvas" class="w-full h-64"></div>
-        </div>
+    <div class="mt-4">
+    <div wire:loading>
+        <p class="text-center text-gray-500">Loading chart...</p>
+    </div>
+
+        @if ($chartType && !empty($chartData['series']))
+            <div class="bg-gray-50 p-4 rounded-lg">
+            <div id="chartCanvas-{{ $id }}" class="w-full h-64"></div>
+            </div>
+        @else
+            <div class="text-center text-gray-500">Please select a chart type and configure the data to view the chart.</div>
+        @endif
     </div>
 </div>
 
 <script>
-    document.addEventListener('livewire:load', () => {
-        // Initialize ApexCharts instance
-        let chart = null;
+    document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('livewire:load', () => {
+            let chart = null;
 
-        // Livewire listener for chart updates
-        Livewire.on('update-chart', (chartData) => {
-            const chartOptions = {
-                chart: {
-                    type: chartData.chart.type,
-                    height: '100%',
-                    width: '100%',
-                },
-                series: chartData.series,
-                xaxis: chartData.xaxis || {},
-                labels: chartData.labels || [],
-                ...chartData.options, // Additional options from Livewire
-            };
+            // Listen for the update-chart event
+            Livewire.on('update-chart', (chartData) => {
+                console.log(chartData);
 
-            // Destroy the previous chart instance if it exists
-            if (chart) {
-                chart.destroy();
-            }
+                if (!chartData.series || chartData.series.length === 0) {
+                    console.error('Invalid chart data:', chartData);
+                    return;
+                }
 
-            // Render a new chart
-            const chartContainer = document.querySelector('#chartCanvas');
-            if (chartContainer) {
-                chart = new ApexCharts(chartContainer, chartOptions);
-                chart.render();
-            } else {
-                console.error('Chart container not found!');
-            }
+                // Destroy the old chart if it exists
+                if (chart) chart.destroy();
+
+                // Select the chart container
+                const chartContainer = document.querySelector(`#chartCanvas-${chartData.id}`);
+                if (chartContainer) {
+                    // Initialize the chart
+                    chart = new ApexCharts(chartContainer, {
+                        chart: {
+                            type: chartData.chart.type,
+                            height: '100%',
+                            width: '100%',
+                        },
+                        series: chartData.series,
+                        xaxis: chartData.xaxis || {},
+                        labels: chartData.labels || [],
+                        ...chartData.options,
+                    });
+                    chart.render();
+                } else {
+                    console.error('Chart container not found!');
+                }
+            });
         });
     });
 </script>
