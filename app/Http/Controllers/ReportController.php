@@ -44,9 +44,18 @@ class ReportController extends Controller
         $validated = $request->validate([
             'chart_title' => 'required|string|max:255',
             'chart_remarks' => 'required|string',
+            'filename' => 'required|string|max:255',
+            'xAxis' => 'nullable|string',
+            'yAxis' => 'nullable|string',
+            'chart_image' => 'required|string',
         ]);
-
-        // Prepare chart HTML or content
+    
+        // Decode the chart image
+        $chartImagePath = storage_path('app/public/reports/chart_' . time() . '.png');
+        $chartImageData = explode(',', $validated['chart_image'])[1]; // Remove Base64 prefix
+        file_put_contents($chartImagePath, base64_decode($chartImageData));
+    
+        // Prepare the HTML content for the PDF
         $chartHtml = '<html>
             <head>
                 <style>
@@ -79,7 +88,7 @@ class ReportController extends Controller
                         margin-bottom: 20px;
                         color: #2c3e50;
                     }
-                    .remarks {
+                    .remarks, .metadata {
                         font-size: 16px;
                         color: #7f8c8d;
                         margin-top: 20px;
@@ -87,15 +96,14 @@ class ReportController extends Controller
                         border-left: 4px solid #3498db;
                         background-color: #ecf6fc;
                     }
-                    .chart {
-                        margin-top: 40px;
-                        text-align: center;
-                        padding: 20px;
-                        border: 1px dashed #ccc;
-                        background-color: #f9f9f9;
-                        border-radius: 10px;
-                        color: #999;
-                        font-style: italic;
+                    .metadata {
+                        margin-top: 10px;
+                        border-left-color: #e74c3c;
+                    }
+                    .chart img {
+                        display: block;
+                        margin: 0 auto;
+                        max-width: 100%;
                     }
                 </style>
             </head>
@@ -105,22 +113,25 @@ class ReportController extends Controller
                 </div>
                 <div class="container">
                     <div class="title">' . htmlspecialchars($validated['chart_title']) . '</div>
-                    <div class="chart">[Chart Preview Placeholder]</div>
+                    <div class="chart"><img src="' . $chartImagePath . '" alt="Chart"></div>
+                    <div class="metadata">
+                        <p><strong>Filename:</strong> ' . htmlspecialchars($validated['filename']) . '</p>
+                        <p><strong>X-Axis:</strong> ' . htmlspecialchars($validated['xAxis'] ?? 'Not specified') . '</p>
+                        <p><strong>Y-Axis:</strong> ' . htmlspecialchars($validated['yAxis'] ?? 'Not specified') . '</p>
+                    </div>
                     <div class="remarks">' . nl2br(htmlspecialchars($validated['chart_remarks'])) . '</div>
-                    
                 </div>
             </body>
         </html>';
-
-
+    
         // Generate PDF using Snappy
         $pdf = SnappyPdf::loadHTML($chartHtml)
             ->setOption('enable-local-file-access', true);
-
+    
         // Define file name and path
         $fileName = 'VizOraReport_' . $validated['chart_title'] . '_' . now()->format('Y-m-d') . '.pdf';
         $filePath = storage_path('app/public/reports/' . $fileName);
-
+    
         // Save PDF to storage
         $pdf->save($filePath);
 
@@ -131,9 +142,10 @@ class ReportController extends Controller
             'file_path' => 'storage/reports/' . $fileName,
             'remarks' => $validated['chart_remarks'], // Ensure the database has this column
         ]);
-
+    
         // Return the PDF for download
         return $pdf->download($fileName);
-    } 
+    }
+    
     
 }
