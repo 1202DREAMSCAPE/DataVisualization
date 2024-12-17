@@ -13,6 +13,7 @@ use App\Http\Controllers\ProfilePageController;
 use App\Http\Controllers\CsvCleaningController;
 use App\Http\Controllers\DeleteController;
 
+Route::get('/build-charts', [ChartController::class, 'index'])->name('build-charts');
 
 // Landing Page
 Route::view('/', 'landing-page')->name('landing-page');

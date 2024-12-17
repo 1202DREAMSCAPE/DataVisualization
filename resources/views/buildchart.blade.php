@@ -9,19 +9,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
     
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    <style>
-    .text-wrap {
-    white-space: normal; /* Allows the text to wrap */
-    word-wrap: break-word; /* Ensures words break to prevent overflow */
-    overflow-wrap: break-word; /* Allows unbreakable words to be broken */
-}
-
-    </style>
 </head>
 <body class="flex h-screen bg-cover bg-center" style="background-image: url('{{ asset('images/blobgif.gif') }}')" >
 <div class="table-responsive"></div>    
@@ -31,9 +23,7 @@
         <livewire:authenticated_navbar />
         <!-- Main Content Area -->
         <main class="p-6">
-                <livewire:chart-builder />
-        </main>
-        
+        <livewire:chart-builder :headers="$headers" :data="$cleanedData"/>
     </div>
     
 

@@ -78,6 +78,12 @@ class FileUpload extends Component
             }, false);
     
             $this->cleanedData = $this->cleanData($data);
+
+            session([
+                'cleanedData' => $this->cleanedData,
+                'headers' => $this->headers,
+            ]);
+    
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to process the file: ' . $e->getMessage());
         } finally {
