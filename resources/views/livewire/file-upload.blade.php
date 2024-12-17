@@ -84,7 +84,6 @@
                 <option value="mean">Mean</option>
                 <option value="median">Median</option>
                 <option value="mode">Mode</option>
-                <option value="standard_deviation">Standard Deviation</option>
             </select>
             <p class="mt-1 text-xs text-gray-500">
                 Select a method to handle missing values.

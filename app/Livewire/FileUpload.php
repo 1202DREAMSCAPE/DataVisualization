@@ -93,46 +93,44 @@ class FileUpload extends Component
         }
     }
     
-    private function cleanData(array $data)
+    private function cleanData(array $data): array
     {
+        // Check if input is valid
+        if (empty($data) || !is_array($data)) {
+            return [];
+        }
+    
         $cleanedData = [];
-        $uniqueRows = [];
+        $uniqueRows = collect(); // Use Laravel collections for better handling
         $rowsRemovedDueToNulls = 0;
         $rowsRemovedDueToDuplicates = 0;
     
         foreach ($data as $row) {
             // Normalize row values
-            $normalizedRow = array_map(function ($value) {
-                return is_string($value) ? preg_replace('/\s+/', ' ', trim(strtolower($value))) : $value;
-            }, $row);
+            $normalizedRow = array_map(fn($value) => $this->normalizeValue($value), $row);
     
             // Check if the row is completely null/empty
-            $isRowEmpty = empty(array_filter($normalizedRow, fn($value) => $value !== null && $value !== '' && $value !== '-'));
+            $isRowEmpty = empty(array_filter($normalizedRow, fn($value) => $this->isValidValue($value)));
     
-            // If the row is empty, check against other empty rows
             if ($isRowEmpty) {
-                // If this is not the first empty row, mark as duplicate
-                if (in_array($normalizedRow, $uniqueRows, true)) {
+                if ($uniqueRows->contains($normalizedRow)) {
                     $rowsRemovedDueToDuplicates++;
                     continue;
                 }
                 $rowsRemovedDueToNulls++;
             } else {
-                // For non-empty rows, check for duplicates
-                if (in_array($normalizedRow, $uniqueRows, true)) {
+                // Check for duplicates
+                if ($uniqueRows->contains($normalizedRow)) {
                     $rowsRemovedDueToDuplicates++;
                     continue;
                 }
             }
     
             // Impute missing values
-            $row = array_map(function ($value, $index) use ($data) {
-                return ($value === null || $value === '' || $value === '-') 
-                    ? $this->getImputedValue($data, $index) 
-                    : $value;
-            }, $normalizedRow, array_keys($normalizedRow));
+            $row = $this->imputeMissingValues($normalizedRow, $data);
     
-            $uniqueRows[] = $normalizedRow;
+            // Add the row to the cleaned dataset and track uniqueness
+            $uniqueRows->push($normalizedRow);
             $cleanedData[] = $row;
         }
     
@@ -145,7 +143,36 @@ class FileUpload extends Component
     
         return $cleanedData;
     }
-
+    
+    private function normalizeValue($value): mixed
+    {
+        // Trim, lowercase, and collapse spaces for strings
+        return is_string($value) ? preg_replace('/\s+/', ' ', trim(strtolower($value))) : $value;
+    }
+    
+    private function isValidValue($value): bool
+    {
+        // Validates if the value is non-null, non-empty, and not a placeholder
+        return $value !== null && $value !== '' && $value !== '-';
+    }
+    
+    private function imputeMissingValues(array $row, array $data): array
+    {
+        // Replace missing values with imputed values
+        return array_map(fn($value, $index) => $this->shouldImpute($value) 
+            ? $this->getImputedValue($data, $index) 
+            : $value, 
+            $row, 
+            array_keys($row)
+        );
+    }
+    
+    private function shouldImpute($value): bool
+    {
+        // Check if the value needs imputation
+        return $value === null || $value === '' || $value === '-';
+    }
+    
     private function calculateMissingValuesSummary(array $data)
     {
         $summary = [];
@@ -269,27 +296,31 @@ private function getImputedValue(array $data, $colIndex)
     public function applyImputation()
     {
         if (!empty($this->cleanedData)) {
-            // Re-run cleaning with the new imputation method
-            $this->cleanedData = $this->cleanData($this->cleanedData);
+            // Apply imputation to a working copy of the cleaned data
+            $imputedData = array_map(function ($row) {
+                return $this->imputeMissingValues($row, $this->cleanedData);
+            }, $this->cleanedData);
+    
+            // Store the imputed data separately
+            $this->cleanedData = $imputedData;
             $this->imputationComplete = true;
     
-            // Save the updated data to the session
+            // Save the updated data to the session for future use
             session([
-                'cleaned_file' => [
+                'imputed_file' => [
                     'filename' => $this->filename,
                     'headers' => $this->headers,
                     'cleanedData' => $this->cleanedData,
                 ],
             ]);
     
-            session()->flash('success', 'Imputation method updated successfully!');
+            session()->flash('success', 'Imputation method applied successfully!');
         } else {
             session()->flash('error', 'No data available for imputation.');
         }
     
         $this->dispatch('refreshComponent'); // Trigger frontend update
     }
-    
     
     
     public function uploadRecentlyUsedFile()

@@ -69,7 +69,7 @@
 </head>
 
 <body class="flex h-screen" >
-<div class="background-blur"></div>
+<!-- <div class="background-blur"></div> -->
 
 <div class="table-responsive"></div>    
     <!-- Main Content -->
