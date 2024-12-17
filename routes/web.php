@@ -12,8 +12,15 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfilePageController;
 use App\Http\Controllers\CsvCleaningController;
 use App\Http\Controllers\DeleteController;
+use App\Http\Controllers\ReportController;
+
+Route::get('/savegenreports', [ReportController::class, 'showSavedReports'])->name('saved.reports');
+Route::delete('/report/{id}', [ReportController::class, 'deleteReport'])->name('report.delete');
+
 
 Route::get('/build-charts', [ChartController::class, 'index'])->name('build-charts');
+Route::post('/generate-pdf', [ReportController::class, 'generatePdf'])->name('generate.pdf');
+
 
 Route::group(['middleware' => 'guest'], function () {
     Route::view('/signup', 'signup')->name('signup');

@@ -8,9 +8,9 @@
         @auth
         <!-- Profile Picture and Username -->
         <div class="flex items-center space-x-2">
-            <span class="font-dmSerif font-bold text-lg bg-gradient-to-r from-indigo-400 via-white to-green-300 bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient bg-clip-text text-transparent">
+            <a href="/profile" class="font-dmSerif font-bold text-lg bg-gradient-to-r from-indigo-400 via-white to-green-300 bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient bg-clip-text text-transparent">
                 {{ auth()->user()->username }}
-            </span>
+            </a>
         </div>
         @endauth
     </div>
@@ -20,26 +20,27 @@
         @auth
         <!-- Buttons (Hidden in Mobile View) -->
         <div class="hidden md:flex space-x-4">
-            <a href="/profile">
-                <button class="relative text-white rounded-lg shadow-lg font-bold px-4 py-1 font-dmSerif text-sm md:text-base hover:scale-105 transition-transform bg-gradient-to-r from-[#4c51bf] via-[#3b82f6] to-[#10b981] bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
-                    Profile
-                </button>
-            </a>
+            
             <a href="/project">
                 <button class="relative text-white rounded-lg shadow-lg font-bold px-4 py-1 font-dmSerif text-sm md:text-base hover:scale-105 transition-transform bg-gradient-to-r from-[#4c51bf] via-[#3b82f6] to-[#10b981] bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
                     Upload New
                 </button>
             </a>
-            <a href="/saved-charts">
+            <a href="{{ ('savegenreports')}}">
                 <button class="relative text-white rounded-lg shadow-lg font-bold px-4 py-1 font-dmSerif text-sm md:text-base hover:scale-105 transition-transform bg-gradient-to-r from-[#4c51bf] via-[#3b82f6] to-[#10b981] bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
-                    Charts
+                    Generated Reports
                 </button>
             </a>
-            <a href="/clean-csv/upload">
+            <!-- <a href="/clean-csv/upload">
                 <button class="relative text-white rounded-lg shadow-lg font-bold px-4 py-1 font-dmSerif text-sm md:text-base hover:scale-105 transition-transform bg-gradient-to-r from-[#4c51bf] via-[#3b82f6] to-[#10b981] bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
                     Clean
                 </button>
-            </a>
+            </a> -->
+            <!-- <a href="/profile">
+                <button class="relative text-white rounded-lg shadow-lg font-bold px-4 py-1 font-dmSerif text-sm md:text-base hover:scale-105 transition-transform bg-gradient-to-r from-[#4c51bf] via-[#3b82f6] to-[#10b981] bg-[length:200%_200%] bg-[position:0%_50%] animate-gradient">
+                    Profile
+                </button>
+            </a> -->
             <a href="{{ route('logout') }}">
                 <button class="bg-white border-darkgray border-dashed border-1 text-black font-bold px-4 py-1 rounded-lg hover:bg-gray-600 transition font-dmSerif text-sm md:text-base">
                     Log Out
