@@ -1,10 +1,10 @@
-<div class="p-8 rounded-lg text-center">
+<div class="p-8 bg-gray-100 rounded-lg text-center">
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <!-- Header and Button -->
         <h2 class="text-2xl font-extrabold mb-4 sm:mb-0">Generated Reports</h2>
         <a 
             href="{{ route('build-charts', ['file' => session('last_file')]) }}" 
-            class="inline-block px-4 py-2 text-md font-dmSerif text-white bg-blue-500 rounded-md hover:bg-blue-600"
+            class="inline-block px-4 py-2 text-md font-dmSerif text-white bg-orange-500 rounded-md hover:bg-orange-600"
         >
             + Create New Report
         </a>

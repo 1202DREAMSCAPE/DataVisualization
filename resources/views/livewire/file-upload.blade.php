@@ -66,37 +66,42 @@
                 </tbody>
             </table>
         </div>
-
-        <!-- Cleaning Summary -->
-        <h4 class="text-sm font-semibold mt-4">Cleaning Summary</h4>
-        <ul class="text-xs text-gray-600 space-y-1">
+        <div class="mt-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+    <!-- Cleaning Summary -->
+    <div class="text-xs text-gray-600 space-y-1 w-full md:w-2/3">
+        <h4 class="text-sm font-semibold">Cleaning Summary</h4>
+        <ul>
             <li><strong>Total Rows:</strong> {{ $cleaningSummary['total_rows'] ?? '0' }}</li>
             <li><strong>Cleaned Rows:</strong> {{ $cleaningSummary['cleaned_rows'] ?? '0' }}</li>
             <li><strong>Rows Removed (Nulls):</strong> {{ $cleaningSummary['rows_removed_due_to_nulls'] ?? '0' }}</li>
             <li><strong>Rows Removed (Duplicates):</strong> {{ $cleaningSummary['rows_removed_due_to_duplicates'] ?? '0' }}</li>
         </ul>
+    </div>
 
-        @if ($showImputation && !empty($imputationOptions))
-        <div class="mb-4 mt-4">
-            <label for="imputationMethod" class="block text-sm font-medium text-gray-700">Handle Missing Values:</label>
-            <select id="imputationMethod" wire:model="imputationMethod" wire:change="applyImputation"
-                class="mt-1 block w-full border-gray-300 rounded-md">
-                <option value="mean">Mean</option>
-                <option value="median">Median</option>
-                <option value="mode">Mode</option>
-            </select>
-            <p class="mt-1 text-xs text-gray-500">
-                Select a method to handle missing values.
-            </p>
-        </div>
-    @endif
-
-        <!-- Proceed to Build Charts -->
-        <div class="mt-4 flex justify-end">
-            <a href="{{ route('build-charts') }}"
-                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md shadow text-sm font-semibold">
-                Proceed to Visualizing
-            </a>
-        </div>
-    @endif
+    <!-- Proceed to Build Charts Button -->
+    <div class="mt-4 md:mt-0">
+        <a href="{{ route('build-charts') }}"
+            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md shadow text-sm font-semibold">
+            Proceed to Visualizing
+        </a>
+    </div>
 </div>
+
+@if ($showImputation && !empty($imputationOptions))
+<!-- Dropdown Section for Imputation -->
+<div class="mb-4 mt-4">
+    <label for="imputationMethod" class="block text-sm font-medium text-gray-700">Handle Missing Values:</label>
+    <select id="imputationMethod" wire:model="imputationMethod" wire:change="applyImputation"
+        class="mt-1 block w-full border-gray-300 rounded-md">
+        <option value="mean">Mean</option>
+        <option value="median">Median</option>
+        <option value="mode">Mode</option>
+    </select>
+    <p class="mt-1 text-xs text-gray-500">
+        Select a method to handle missing values.
+    </p>
+</div>
+@endif
+
+    @endif
+    

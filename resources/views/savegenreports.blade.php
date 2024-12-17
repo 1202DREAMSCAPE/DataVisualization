@@ -68,7 +68,7 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 
-<body class="flex h-screen" >
+<body class="flex h-screen bg-gray-200" >
 <!-- <div class="background-blur"></div> -->
 
 <div class="table-responsive"></div>    
