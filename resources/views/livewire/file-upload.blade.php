@@ -37,24 +37,6 @@
         <!-- File Details -->
         <h2 class="text-sm font-medium mb-4">File: <span class="text-blue-500">{{ $filename }}</span></h2>
 
-        <!-- Imputation Dropdown -->
-        @if ($showImputation)
-    <div class="mb-4">
-        <label for="imputationMethod" class="block text-sm font-medium text-gray-700">Handle Missing Values:</label>
-        <select id="imputationMethod" wire:model="imputationMethod" wire:change="applyImputation"
-            class="mt-1 block w-full border-gray-300 rounded-md">
-            <option value="mean">Mean</option>
-            <option value="median">Median</option>
-            <option value="mode">Mode</option>
-            <option value="standard_deviation">Standard Deviation</option>
-        </select>
-        <p class="mt-1 text-xs text-gray-500">
-            Select a method to handle missing values dynamically. Data preview will update automatically.
-        </p>
-    </div>
-@endif
-
-
         <!-- Cleaned Data Preview -->
         <div class="overflow-x-auto max-h-48 border border-gray-300 rounded-md p-2 bg-gray-50">
             <table class="min-w-full text-xs text-left">
@@ -78,17 +60,56 @@
         </div>
 
         <!-- Cleaning Summary -->
-        <h4 class="text-sm font-medium mt-4">Cleaning Summary</h4>
+        <h4 class="text-sm font-semibold mt-4">Cleaning Summary</h4>
         <ul class="text-xs text-gray-600">
             <li>Total Rows: {{ $cleaningSummary['total_rows'] ?? '0' }}</li>
             <li>Cleaned Rows: {{ $cleaningSummary['cleaned_rows'] ?? '0' }}</li>
             <li>Rows Removed (Nulls): {{ $cleaningSummary['rows_removed_due_to_nulls'] ?? '0' }}</li>
             <li>Rows Removed (Duplicates): {{ $cleaningSummary['rows_removed_due_to_duplicates'] ?? '0' }}</li>
         </ul>
+        <h4 class="text-sm font-medium mt-4">Missing Values Summary</h4>
+<ul class="text-xs text-gray-600">
+    @if (!empty($missingValuesSummary))
+        @foreach ($missingValuesSummary as $column => $count)
+            <li>{{ $column }}: {{ $count }} missing values</li>
+        @endforeach
+    @else
+        <li>No missing values found in any column.</li>
     @endif
+</ul>
+
+    @endif
+
+
+    @if ($showImputation && !empty($missingValuesSummary))
+    <div class="mt-4 mb-4">
+        <label for="imputationMethod" class="block text-sm font-semibold text-gray-700">Handle Missing Values:</label>
+        <select id="imputationMethod" wire:model.defer="imputationMethod" wire:change="applyImputation"
+        class="mt-1 block w-full border-gray-300 rounded-md">
+   <option value="mean">Mean</option>
+    <option value="median">Median</option>
+    <option value="mode">Mode</option>
+    <option value="standard_deviation">Standard Deviation</option>
+</select>
+
+
+        <p class="mt-1 text-xs text-gray-500">
+            Select a method to handle missing values. Data preview will update automatically.
+        </p>
+    </div>
+@endif
+
+
 
     <!-- Chart Selector -->
     @if ($isChartSelectorOpen)
         <livewire:chart-selector :headers="$headers" :previewData="$previewData" />
     @endif
 </div>
+
+<script>
+    window.addEventListener('updated', event => {
+        console.log(event.detail.message);
+        alert(event.detail.message);
+    });
+</script>
