@@ -38,6 +38,9 @@ class FileUpload extends Component
         $path = $this->file->store('temp');
         $this->loadAndCleanData($path);
 
+        // dd($this->headers, $this->cleanedData);
+
+
         session([
             'cleaned_file' => [
                 'filename' => $this->filename,
@@ -274,24 +277,25 @@ private function generateImputationOptions(array $data)
     
     
     public function uploadRecentlyUsedFile()
-{
-    if (session()->has('cleaned_file')) {
-        $recentFile = session('cleaned_file');
-        
-        // Set the filename, headers, and cleanedData from the session
-        $this->filename = $recentFile['filename'];
-        $this->headers = $recentFile['headers'];
-        $this->cleanedData = $recentFile['cleanedData'];
-
-        // Check if imputation is needed
-        $this->imputationOptions = $this->generateImputationOptions($this->cleanedData);
-        $this->showImputation = !empty($this->imputationOptions);
-
-        session()->flash('success', 'Recently used file loaded successfully!');
-    } else {
-        session()->flash('error', 'No recently uploaded file found.');
+    {
+        if (session()->has('cleaned_file')) {
+            $recentFile = session('cleaned_file');
+            
+            // Ensure session data is available and set the properties
+            $this->filename = $recentFile['filename'] ?? '';
+            $this->headers = $recentFile['headers'] ?? [];
+            $this->cleanedData = $recentFile['cleanedData'] ?? [];
+    
+            // Check if imputation is needed
+            $this->imputationOptions = $this->generateImputationOptions($this->cleanedData);
+            $this->showImputation = !empty($this->imputationOptions);
+    
+            session()->flash('success', 'Recently used file loaded successfully!');
+        } else {
+            session()->flash('error', 'No recently uploaded file found.');
+        }
     }
-}
+    
 
     public function render()
     {

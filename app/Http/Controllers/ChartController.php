@@ -17,11 +17,13 @@ class ChartController extends Controller
     }
     public function index(Request $request)
     {
-        // Pass cleaned data and headers from session or other storage
+        // Check if session data exists
         $cleanedData = session('cleanedData', []);
         $headers = session('headers', []);
-        $chartType = session('chartType', 'bar'); // Default to 'bar' if not set in the session
-
-        return view('buildchart', compact('cleanedData', 'headers'));
+        $chartType = session('chartType', 'bar');
+    
+        // Debugging: Check session data    
+        return view('buildchart', compact('cleanedData', 'headers', 'chartType'));
     }
+    
 }

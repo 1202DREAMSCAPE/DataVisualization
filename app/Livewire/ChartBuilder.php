@@ -8,7 +8,7 @@ class ChartBuilder extends Component
 {
     public $headers = []; // Array of data headers
     public $data = [];    // Chart data
-    public $chartType = null; // Selected chart type
+    public $chartType; // Selected chart type
     public $xAxis = null;     // X-Axis selection
     public $yAxis = null;     // Y-Axis selection
     public $selectedCategories = []; // Selected categories for radar/polarArea
@@ -19,7 +19,7 @@ class ChartBuilder extends Component
     {
         $this->headers = $headers;
         $this->data = $data;
-        $this->chartType = $chartType;  // Set chart type passed from the controller
+        $this->chartType = 'bar';  // Set chart type passed from the controller
         $this->prepareChartData();
     }
 

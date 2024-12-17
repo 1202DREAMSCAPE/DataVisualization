@@ -23,7 +23,7 @@
         <livewire:authenticated_navbar />
         <!-- Main Content Area -->
         <main class="p-6">
-        <livewire:chart-builder :headers="$headers" :data="$cleanedData"/>
+        @livewire('chart-builder', ['headers' => $headers, 'data' => $cleanedData, 'chartType' => $chartType])
     </div>
     
 
