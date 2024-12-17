@@ -1,6 +1,5 @@
 <div class="p-6 bg-white rounded-lg shadow-lg">
     <h2 class="text-xl font-bold mb-4">Build Your Chart</h2>
-
     <!-- Chart Type Selection -->
     <div class="mb-4">
         <h3 class="text-sm font-semibold">Select Chart Type</h3>

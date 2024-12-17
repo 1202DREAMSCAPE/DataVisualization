@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Livewire;
 
 use Livewire\Component;
 
@@ -13,13 +13,14 @@ class ChartBuilder extends Component
     public $yAxis = null;     // Y-Axis selection
     public $selectedCategories = []; // Selected categories for radar/polarArea
     public $selectedMetric = null;   // Selected metric for radialBar
-    public $chartData = [];          // Data sent to ApexCharts
+    public $chartData = [];   
+    public $sample="hatdog";       // Data sent to ApexCharts
 
     public function mount($headers = [], $data = [], $chartType = null)
     {
         $this->headers = $headers;
         $this->data = $data;
-        $this->chartType = 'bar';  // Set chart type passed from the controller
+        $this->chartType ?? '';  // Set chart type passed from the controller
         $this->prepareChartData();
     }
 
@@ -191,4 +192,5 @@ class ChartBuilder extends Component
     {
         return view('livewire.chart-builder');
     }
+
 }
