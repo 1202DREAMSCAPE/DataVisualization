@@ -66,15 +66,17 @@ class ChartBuilder extends Component
             return; // Wait until metric is selected
         }
 
-        if (in_array($this->chartType, ['radar', 'polarArea']) && empty($this->selectedCategories)) {
+        if (in_array($this->chartType, ['radar']) && empty($this->selectedCategories)) {
             return; // Wait until categories are selected
         }
 
         // Prepare the chart data based on the chart type
         switch ($this->chartType) {
             case 'bar':
+                $this->prepareBarOrLineChartData("bar");
+                break;
             case 'line':
-                $this->prepareBarOrLineChartData();
+                $this->prepareBarOrLineChartData("line");
                 break;
             case 'pie':
                 $this->preparePieChartData();
@@ -100,13 +102,14 @@ class ChartBuilder extends Component
                 'xaxis' => $this->chartData['xaxis'] ?? [],
                 'yaxis' => $this->chartData['yaxis'] ?? [],
                 'options' => $this->chartData['options'] ?? [],
+                'labels' => $this->chartData['labels'] ?? [],
                 // Removed 'labels' as it’s not used in the prepared chartData
                 'id' => $this->id,
             ]);
         }
     }
 
-    private function prepareBarOrLineChartData()
+    private function prepareBarOrLineChartData($type)
     {
         // Ensure xAxis and yAxis are set and valid
         if (!isset($this->xAxis) || !isset($this->yAxis)) {
@@ -185,7 +188,7 @@ class ChartBuilder extends Component
     
         // Prepare chart data matching the desired structure
         $this->chartData = [
-            'chartType' => $this->chartType ?? 'bar', // Ensure chartType is set, default to 'bar'
+            'chartType' => $type ?? null, // Ensure chartType is set, default to 'bar'
     
             'series' => [
                 [
@@ -228,94 +231,287 @@ class ChartBuilder extends Component
     
     private function preparePieChartData()
     {
-        if (!$this->xAxis) return;
-
-        // Assuming xAxis is a column letter, convert it to index
-        $columnLetterToIndex = function(string $letter): int {
+        if (!$this->xAxis || !$this->yAxis) {
+            return; // Ensure both X-Axis (labels) and Y-Axis (values) are set
+        }
+    
+        // Helper function to convert column letters to indices
+        $columnLetterToIndex = function (string $letter): int {
             $letter = strtoupper($letter);
             $length = strlen($letter);
             $index = 0;
-
+    
             for ($i = 0; $i < $length; $i++) {
                 $index = $index * 26 + (ord($letter[$i]) - ord('A') + 1);
             }
-
+    
             return $index - 1; // Zero-based index
         };
-
+    
         $xIndex = $columnLetterToIndex($this->xAxis);
-
-        // Validate that the xIndex exists in the data rows
+        $yIndex = $columnLetterToIndex($this->yAxis);
+    
+        // Validate that the indices exist in the data rows
         foreach ($this->data as $rowNumber => $row) {
             if (!array_key_exists($xIndex, $row)) {
-                // Consider logging instead of using dd() in production
                 dd("Missing xAxis index {$xIndex} in row {$rowNumber}", $row);
             }
+            if (!array_key_exists($yIndex, $row)) {
+                dd("Missing yAxis index {$yIndex} in row {$rowNumber}", $row);
+            }
         }
-
-        $values = array_count_values(array_column($this->data, $xIndex));
-
+    
+        // Accumulate values based on the X-Axis labels
+        $aggregatedData = [];
+        foreach ($this->data as $row) {
+            $label = $row[$xIndex];
+            $value = is_numeric($row[$yIndex]) ? (float) $row[$yIndex] : 0;
+    
+            if (!isset($aggregatedData[$label])) {
+                $aggregatedData[$label] = 0;
+            }
+            $aggregatedData[$label] += $value;
+        }
+    
+        // Prepare the series and labels for the pie chart
         $this->chartData = [
-            'series' => array_values($values),
-            'labels' => array_keys($values),
+            'chartType' => "pie", // Ensure chartType is set, default to 'bar'
+            'series' => array_values($aggregatedData), // Y-Axis values
+            'labels' => array_keys($aggregatedData),  // X-Axis labels
             'options' => [
+                'chart' => [
+                    'type' => 'pie',
+                ],
                 'title' => [
                     'text' => 'Pie Chart',
                     'align' => 'center',
                 ],
-            ],
-        ];
-    }
-
-    private function prepareRadarChartData()
-    {
-        if (empty($this->selectedCategories)) return;
-
-        $datasets = array_map(function ($category) {
-            return [
-                'name' => $this->headers[$category] ?? 'Category',
-                'data' => array_column($this->data, $category),
-            ];
-        }, $this->selectedCategories);
-
-        $this->chartData = [
-            'series' => $datasets,
-            'labels' => array_map(function($category) {
-                return $this->headers[$category] ?? 'Category';
-            }, $this->selectedCategories),
-            'options' => [
-                'title' => [
-                    'text' => 'Radar Chart',
-                    'align' => 'center',
+                'responsive' => [
+                    [
+                        'breakpoint' => 480,
+                        'options' => [
+                            'chart' => [
+                                'width' => 200,
+                            ],
+                            'legend' => [
+                                'position' => 'bottom',
+                            ],
+                        ],
+                    ],
                 ],
             ],
         ];
     }
+    
 
-    private function preparePolarAreaChartData()
+    private function prepareRadarChartData()
     {
-        if (empty($this->selectedCategories)) return;
-
-        $values = array_map(function ($category) {
-            return array_sum(array_column($this->data, $category));
-        }, $this->selectedCategories);
-
-        $labels = array_map(function ($category) {
-            return $this->headers[$category] ?? 'Category';
-        }, $this->selectedCategories);
-
+        // Ensure selected categories and data are valid
+        if (empty($this->selectedCategories) || empty($this->data)) {
+            dd('Selected categories or data are missing');
+            return;
+        }
+    
+        /**
+         * Convert a column letter (e.g., 'A', 'B', 'AA') to a zero-based index.
+         *
+         * @param string $letter The column letter.
+         * @return int The corresponding zero-based index.
+         */
+        $columnLetterToIndex = function (string $letter): int {
+            $letter = strtoupper($letter);
+            $length = strlen($letter);
+            $index = 0;
+    
+            for ($i = 0; $i < $length; $i++) {
+                $index = $index * 26 + (ord($letter[$i]) - ord('A') + 1);
+            }
+    
+            return $index - 1; // Zero-based index
+        };
+    
+        // Initialize datasets and a global max value tracker
+        $datasets = [];
+        $globalMaxValues = [];
+    
+        foreach ($this->selectedCategories as $category) {
+            // Convert category to numeric index (if using letters)
+            $columnIndex = is_numeric($category) ? $category : $columnLetterToIndex($category);
+    
+            // Extract column data and ensure it is numeric
+            $columnData = array_map(function ($row) use ($columnIndex) {
+                return isset($row[$columnIndex]) && is_numeric($row[$columnIndex]) ? (float) $row[$columnIndex] : null;
+            }, $this->data);
+    
+            // Filter out null values (non-numeric data)
+            $columnData = array_filter($columnData, fn($value) => $value !== null);
+    
+            if (empty($columnData)) {
+                // Skip this column if it has no valid numeric data
+                continue;
+            }
+    
+            // Get the top 6 values (descending order), padded if necessary
+            rsort($columnData);
+            $topValues = array_slice($columnData, 0, 6);
+            while (count($topValues) < 6) {
+                $topValues[] = 0; // Pad with 0
+            }
+    
+            // Add to the dataset
+            $datasets[] = [
+                'name' => $this->headers[$category] ?? $category, // Use column name or fallback
+                'data' => $topValues,
+            ];
+    
+            // Merge values into global max array
+            $globalMaxValues = array_merge($globalMaxValues, $topValues);
+        }
+    
+        // Ensure there are numeric values to calculate the highest value
+        if (empty($globalMaxValues)) {
+            dd('No numeric data available to generate chart');
+            return;
+        }
+    
+        // Determine the highest value across all selected columns
+        $highestValue = max($globalMaxValues);
+    
+        // Set labels as the highest value repeated 6 times
+        $labels = array_fill(0, 6, (string) $highestValue);
+    
+        // Prepare final chart data
         $this->chartData = [
-            'series' => $values,
+            'chartType' => "radar", // Set the chart type
+            'series' => $datasets,
             'labels' => $labels,
             'options' => [
+                'title' => [
+                    'text' => 'Radar Chart',
+                    'align' => 'center',
+                    'style' => [
+                        'fontSize' => '20px',
+                        'fontWeight' => 'bold',
+                        'color' => '#263238',
+                    ],
+                ],
+            ],
+        ];
+    
+        // Uncomment to debug the final chart data
+        // dd($this->chartData);
+    }
+    
+    
+    
+    
+    private function preparePolarAreaChartData()
+    {
+        // Ensure x-axis and y-axis are set and valid
+        if (empty($this->xAxis) || empty($this->yAxis) || empty($this->data)) {
+            dd('xAxis, yAxis, or data is missing');
+            return;
+        }
+    
+        /**
+         * Convert a column letter (e.g., 'A', 'B', 'AA') to a zero-based index.
+         *
+         * @param string $letter The column letter.
+         * @return int The corresponding zero-based index.
+         */
+        $columnLetterToIndex = function (string $letter): int {
+            $letter = strtoupper($letter);
+            $length = strlen($letter);
+            $index = 0;
+    
+            for ($i = 0; $i < $length; $i++) {
+                $index = $index * 26 + (ord($letter[$i]) - ord('A') + 1);
+            }
+    
+            return $index - 1; // Zero-based index
+        };
+    
+        // Convert x-axis and y-axis to numeric indices
+        $xIndex = is_numeric($this->xAxis) ? $this->xAxis : $columnLetterToIndex($this->xAxis);
+        $yIndex = is_numeric($this->yAxis) ? $this->yAxis : $columnLetterToIndex($this->yAxis);
+    
+        // Aggregate y-axis values for each unique x-axis entry
+        $aggregatedData = [];
+        foreach ($this->data as $row) {
+            if (!isset($row[$xIndex]) || !isset($row[$yIndex]) || !is_numeric($row[$yIndex])) {
+                continue; // Skip invalid rows
+            }
+    
+            $xValue = $row[$xIndex];
+            $yValue = (float)$row[$yIndex];
+    
+            if (!isset($aggregatedData[$xValue])) {
+                $aggregatedData[$xValue] = 0;
+            }
+    
+            $aggregatedData[$xValue] += $yValue;
+        }
+    
+        // Sort aggregated data in descending order of y-values
+        arsort($aggregatedData);
+    
+        // Extract the top 6 entries
+        $topEntries = array_slice($aggregatedData, 0, 6, true);
+    
+        // Prepare series and labels
+        $series = array_values($topEntries); // Accumulated y-values
+        $labels = array_keys($topEntries);  // Unique x-values
+    
+        // Prepare the final chart data
+        $this->chartData = [
+            'chartType' => "polarArea", // Set the chart type
+            'series' => $series,
+            'labels' => $labels,
+            'options' => [
+                'chart' => [
+                    'width' => 380,
+                    'type' => 'polarArea',
+                ],
+                'fill' => [
+                    'opacity' => 1,
+                ],
+                'stroke' => [
+                    'width' => 1,
+                ],
+                'yaxis' => [
+                    'show' => false,
+                ],
+                'legend' => [
+                    'position' => 'bottom',
+                ],
+                'plotOptions' => [
+                    'polarArea' => [
+                        'rings' => [
+                            'strokeWidth' => 0,
+                        ],
+                        'spokes' => [
+                            'strokeWidth' => 0,
+                        ],
+                    ],
+                ],
+                'theme' => [
+                    'monochrome' => [
+                        'enabled' => true,
+                        'shadeTo' => 'light',
+                        'shadeIntensity' => 0.6,
+                    ],
+                ],
                 'title' => [
                     'text' => 'Polar Area Chart',
                     'align' => 'center',
                 ],
             ],
         ];
+    
+        // Uncomment the following line for debugging
+        //dd($this->chartData);
     }
-
+    
     private function prepareRadialBarChartData()
     {
         if (!$this->selectedMetric) return;

@@ -25,7 +25,7 @@
     <!-- Axis/Column Selection -->
     @if ($chartType)
         <div class="grid grid-cols-2 gap-4 mb-4">
-            @if (in_array($chartType, ['radar', 'polarArea']))
+            @if (in_array($chartType, ['radar']))
                 <!-- Radar/Polar Area Chart Categories -->
                 <div>
                     <label for="categories" class="block text-sm font-medium text-gray-700">Select Categories</label>
@@ -40,7 +40,7 @@
                 </div>
             @endif
 
-            @if (in_array($chartType, ['bar', 'line', 'pie']))
+            @if (in_array($chartType, ['bar', 'line', 'pie','polarArea']))
                 <!-- Bar/Line/Pie Axis Selection -->
                 <div>
                     <label for="xAxis" class="block text-sm font-medium text-gray-700">X-Axis</label>
@@ -51,7 +51,7 @@
                         @endforeach
                     </select>
                 </div>
-                @if ($chartType !== 'pie')
+                @if ($chartType !== 'nothing')
                     <div>
                         <label for="yAxis" class="block text-sm font-medium text-gray-700">Y-Axis</label>
                         <select id="yAxis" wire:model="yAxis" class="block w-full border-gray-300 rounded-md">
@@ -139,9 +139,10 @@
                 }
 
                 // ApexCharts Configuration with Dynamic Chart Type
-                chart = new ApexCharts(chartContainer, {
+                if(chartData[0].chartType =="bar" || chartData[0].chartType == "line"){
+                                    chart = new ApexCharts(chartContainer, {
                     chart: {
-                        type: chartData.chartType || 'bar', // Dynamic chart type with fallback
+                        type: chartData[0].chartType ?? "bar", // Dynamic chart type with fallback
                         height: '100%',
                         width: '100%',
                         animations: {
@@ -177,7 +178,7 @@
                         text: chartData.title || 'Weekly Sales Data', // Default hardcoded title
                         align: 'center',
                         style: {
-                            fontSize: '20px',
+                            fontSize: '16px',
                             fontWeight: 'bold',
                             color: '#263238'
                         }
@@ -205,6 +206,140 @@
                         }
                     }]
                 });
+                }
+                
+                if(chartData[0].chartType=="pie"){
+                    chart = new ApexCharts(chartContainer, {
+                    chart: {
+                        type: "pie", // Dynamic chart type with fallback
+                        height: '100%',
+                        width: '100%',
+                        animations: {
+                            enabled: true,
+                            easing: 'easeinout',
+                            speed: 800,
+                        },
+                        toolbar: {
+                            show: true
+                        },
+                        zoom: {
+                            enabled: true
+                        },
+                    },
+                    series: chartData[0].series,
+                    labels: chartData[0].labels,
+                    title: {
+                        text: chartData[0].options.title.text || 'Weekly Sales Data', // Default hardcoded title
+                        align: 'left',
+                        style: {
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            color: '#263238'
+                        }
+                    },
+                    responsive: [{
+                        breakpoint: 200,
+                        options: {
+                            chart: {
+                                height: '100%',
+                                width: '100%',
+                            },
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }]
+                });
+                }
+
+                if(chartData[0].chartType=="radar"){
+                    chart = new ApexCharts(chartContainer, {
+                    chart: {
+                        type: "radar", // Dynamic chart type with fallback
+                        height: '100%',
+                        width: '100%',
+                        animations: {
+                            enabled: true,
+                            easing: 'easeinout',
+                            speed: 800,
+                        },
+                        toolbar: {
+                            show: true
+                        },
+                        zoom: {
+                            enabled: true
+                        },
+                    },
+                    series: chartData[0].series,
+                    labels: chartData[0].labels,
+                    title: {
+                        text: chartData[0].options.title.text || 'Weekly Sales Data', // Default hardcoded title
+                        align: 'left',
+                        style: {
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            color: '#263238'
+                        }
+                    },
+                    responsive: [{
+                        breakpoint: 200,
+                        options: {
+                            chart: {
+                                height: '100%',
+                                width: '100%',
+                            },
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }]
+                });
+                }
+
+                if(chartData[0].chartType=="polarArea"){
+                    chart = new ApexCharts(chartContainer, {
+                    chart: {
+                        type: "polarArea", // Dynamic chart type with fallback
+                        height: '100%',
+                        width: '100%',
+                        animations: {
+                            enabled: true,
+                            easing: 'easeinout',
+                            speed: 800,
+                        },
+                        toolbar: {
+                            show: true
+                        },
+                        zoom: {
+                            enabled: true
+                        },
+                    },
+                    series: chartData[0].series,
+                    labels: chartData[0].labels,
+                    title: {
+                        text: chartData[0].options.title.text || 'Weekly Sales Data', // Default hardcoded title
+                        align: 'left',
+                        style: {
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            color: '#263238'
+                        }
+                    },
+                    responsive: [{
+                        breakpoint: 200,
+                        options: {
+                            chart: {
+                                height: '100%',
+                                width: '100%',
+                            },
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }]
+                });
+                }
+
 
                 // Render the chart
                 chart.render();
