@@ -21,7 +21,14 @@ class ChartController extends Controller
         // Check if session data exists
         $cleanedData = session('cleanedData', []);
         $headers = session('headers', []);
-        $chartType = session('chartType', 'bar');
+        $chartType = session('chartType', '');
+
+            // Debugging: Log session data
+    logger('Session Data:', [
+        'cleanedData' => $cleanedData,
+        'headers' => $headers,
+        'chartType' => $chartType,
+    ]);
     
         // Debugging: Check session data    
         return view('buildchart', compact('cleanedData', 'headers', 'chartType'));
