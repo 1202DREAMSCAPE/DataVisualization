@@ -63,40 +63,34 @@
         <h4 class="text-sm font-semibold mt-4">Cleaning Summary</h4>
         <ul class="text-xs text-gray-600">
             <li>Total Rows: {{ $cleaningSummary['total_rows'] ?? '0' }}</li>
-            <li>Cleaned Rows: {{ $cleaningSummary['cleaned_rows'] ?? '0' }}</li>
+            <li>Returned Rows: {{ $cleaningSummary['cleaned_rows'] ?? '0' }}</li>
             <li>Rows Removed (Nulls): {{ $cleaningSummary['rows_removed_due_to_nulls'] ?? '0' }}</li>
             <li>Rows Removed (Duplicates): {{ $cleaningSummary['rows_removed_due_to_duplicates'] ?? '0' }}</li>
         </ul>
 
+        <!-- Proceed to Build Charts -->
+        <div class="mt-4">
+            <a href="{{ route('build-charts') }}"
+                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md shadow text-sm font-semibold">
+                Proceed to Build Charts
+            </a>
+        </div>
     @endif
 
-            <!-- Imputation Dropdown -->
-            @if ($showImputation && !empty($imputationOptions))
-    <div class="mb-4 mt-4">
-        <label for="imputationMethod" class="block text-sm font-medium text-gray-700">Handle Missing Values:</label>
-        <select id="imputationMethod" wire:model="imputationMethod" wire:change="applyImputation"
-            class="mt-1 block w-full border-gray-300 rounded-md">
-            <option value="mean">Mean</option>
-            <option value="median">Median</option>
-            <option value="mode">Mode</option>
-            <option value="standard_deviation">Standard Deviation</option>
-        </select>
-        <p class="mt-1 text-xs text-gray-500">
-            Select a method to handle missing values.
-        </p>
-    </div>
-@endif
-
-
-    <!-- Chart Selector -->
-    @if ($isChartSelectorOpen)
-        <livewire:chart-selector :headers="$headers" :previewData="$previewData" />
+    <!-- Imputation Dropdown -->
+    @if ($showImputation && !empty($imputationOptions))
+        <div class="mb-4 mt-4">
+            <label for="imputationMethod" class="block text-sm font-medium text-gray-700">Handle Missing Values:</label>
+            <select id="imputationMethod" wire:model="imputationMethod" wire:change="applyImputation"
+                class="mt-1 block w-full border-gray-300 rounded-md">
+                <option value="mean">Mean</option>
+                <option value="median">Median</option>
+                <option value="mode">Mode</option>
+                <option value="standard_deviation">Standard Deviation</option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500">
+                Select a method to handle missing values.
+            </p>
+        </div>
     @endif
 </div>
-
-<script>
-    window.addEventListener('updated', event => {
-        console.log(event.detail.message);
-        alert(event.detail.message);
-    });
-</script>

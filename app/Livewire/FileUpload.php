@@ -22,7 +22,7 @@ class FileUpload extends Component
     public $showImputation = false; 
     public $imputationMethod = 'mean'; // Default method
     public $imputationComplete = false;
-
+    public $missingValuesSummary = [];
     public function updatedImputationMethod()
     {
         $this->applyImputation();
@@ -262,30 +262,30 @@ private function generateImputationOptions(array $data)
             session()->flash('error', 'No data available for imputation.');
         }
     
-        $this->emitSelf('refreshComponent'); // Trigger frontend update
+        $this->dispatch('refreshComponent'); // Trigger frontend update
     }
     
     
     
     public function uploadRecentlyUsedFile()
-    {
-        if (session()->has('cleaned_file')) {
-            $recentFile = session('cleaned_file');
-            
-            // Set the filename, headers, and cleanedData from the session
-            $this->filename = $recentFile['filename'];
-            $this->headers = $recentFile['headers'];
-            $this->cleanedData = $recentFile['cleanedData'];
+{
+    if (session()->has('cleaned_file')) {
+        $recentFile = session('cleaned_file');
+        
+        // Set the filename, headers, and cleanedData from the session
+        $this->filename = $recentFile['filename'];
+        $this->headers = $recentFile['headers'];
+        $this->cleanedData = $recentFile['cleanedData'];
 
-            // Check if imputation is needed
-            $this->imputationOptions = $this->generateImputationOptions($this->cleanedData);
-            $this->showImputation = !empty($this->imputationOptions);
+        // Check if imputation is needed
+        $this->imputationOptions = $this->generateImputationOptions($this->cleanedData);
+        $this->showImputation = !empty($this->imputationOptions);
 
-            session()->flash('success', 'Recently used file loaded successfully!');
-        } else {
-            session()->flash('error', 'No recently uploaded file found.');
-        }
+        session()->flash('success', 'Recently used file loaded successfully!');
+    } else {
+        session()->flash('error', 'No recently uploaded file found.');
     }
+}
 
     public function render()
     {
