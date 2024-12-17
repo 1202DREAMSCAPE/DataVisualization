@@ -10,7 +10,7 @@
         </a>
     </div>
     @if ($reports->isEmpty())
-        <p class="text-lg text-pink-400">No reports found. Generate a report to get started!</p>
+        <p class="text-lg text-gray-500">No reports found. Generate a report to get started!</p>
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             @foreach ($reports as $report)

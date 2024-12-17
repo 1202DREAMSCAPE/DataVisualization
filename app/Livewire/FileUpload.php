@@ -23,7 +23,6 @@ class FileUpload extends Component
     public $imputationMethod = 'mean'; // Default method
     public $imputationComplete = false;
     public $missingValuesSummary = [];
-    
     public function updatedImputationMethod()
     {
         $this->applyImputation();
@@ -61,91 +60,41 @@ class FileUpload extends Component
             $sheet = $spreadsheet->getActiveSheet();
             $data = $sheet->toArray(null, true, true, true);
     
-            // Extract headers and validate them
             $this->headers = array_shift($data);
-            if (!$this->headers || empty(array_filter($this->headers))) {
-                throw new \Exception("Headers are missing or invalid in the uploaded file.");
+            if (!$this->headers) {
+                throw new \Exception("Headers are missing from the uploaded file.");
             }
     
-            // Generate summaries
+            // Generate summaries and options
             $this->missingValuesSummary = $this->calculateMissingValuesSummary($data);
+            $this->showImputation = array_sum($this->missingValuesSummary) > 0;
             $this->imputationOptions = $this->generateImputationOptions($data);
-            $this->showImputation = !empty($this->imputationOptions) && array_sum($this->missingValuesSummary) > 0;
-
     
-            // Clean data
+            // Show imputation only if there are missing values
+            $this->showImputation = array_reduce($data, function ($carry, $row) {
+                foreach ($row as $value) {
+                    if (is_null($value) || trim((string) $value) === '' || $value === '-') {
+                        return true;
+                    }
+                }
+                return $carry;
+            }, false);
+    
             $this->cleanedData = $this->cleanData($data);
-    
-            // Store cleaned data in session for reuse
+
             session([
-                'cleaned_file' => [
-                    'filename' => $this->filename,
-                    'headers' => $this->headers,
-                    'cleanedData' => $this->cleanedData,
-                    'cleaningSummary' => $this->cleaningSummary,
-                ],
+                'cleanedData' => $this->cleanedData,
+                'headers' => $this->headers,
             ]);
     
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to process the file: ' . $e->getMessage());
         } finally {
-            Storage::delete($path); // Always delete the uploaded file after processing
+            Storage::delete($path);
         }
     }
     
-    private function cleanData(array $data)
-    {
-        $cleanedData = [];
-        $uniqueRows = [];
-        $rowsRemovedDueToNulls = 0;
-        $rowsRemovedDueToDuplicates = 0;
     
-        foreach ($data as $row) {
-            // Normalize row values
-            $normalizedRow = array_map(function ($value) {
-                return is_string($value) ? preg_replace('/\s+/', ' ', trim(strtolower($value))) : $value;
-            }, $row);
-    
-            // Check if the row is completely null/empty
-            $isRowEmpty = empty(array_filter($normalizedRow, fn($value) => $value !== null && $value !== '' && $value !== '-'));
-    
-            // If the row is empty, check against other empty rows
-            if ($isRowEmpty) {
-                // If this is not the first empty row, mark as duplicate
-                if (in_array($normalizedRow, $uniqueRows, true)) {
-                    $rowsRemovedDueToDuplicates++;
-                    continue;
-                }
-                $rowsRemovedDueToNulls++;
-            } else {
-                // For non-empty rows, check for duplicates
-                if (in_array($normalizedRow, $uniqueRows, true)) {
-                    $rowsRemovedDueToDuplicates++;
-                    continue;
-                }
-            }
-    
-            // Impute missing values
-            $row = array_map(function ($value, $index) use ($data) {
-                return ($value === null || $value === '' || $value === '-') 
-                    ? $this->getImputedValue($data, $index) 
-                    : $value;
-            }, $normalizedRow, array_keys($normalizedRow));
-    
-            $uniqueRows[] = $normalizedRow;
-            $cleanedData[] = $row;
-        }
-    
-        $this->cleaningSummary = [
-            'total_rows' => count($data),
-            'cleaned_rows' => count($cleanedData),
-            'rows_removed_due_to_nulls' => $rowsRemovedDueToNulls,
-            'rows_removed_due_to_duplicates' => $rowsRemovedDueToDuplicates,
-        ];
-    
-        return $cleanedData;
-    }
-
     private function calculateMissingValuesSummary(array $data)
     {
         $summary = [];
@@ -176,35 +125,23 @@ private function hasMissingValues(array $data)
 private function generateImputationOptions(array $data)
 {
     $options = [];
-    
-    // Return empty array if no data
-    if (empty($data)) {
-        return $options;
-    }
-
     foreach ($this->headers as $index => $header) {
-        // Safely get column values, handling potential index issues
+        if (!isset($data[0][$index])) {
+            logger('Invalid column index in generateImputationOptions', ['index' => $index, 'header' => $header]);
+            continue; // Skip invalid column indices
+        }
         $columnValues = array_column($data, $index);
-        
-        // Filter out truly empty or null values
-        $nonEmptyValues = array_filter($columnValues, function ($value) {
-            return $value !== null 
-                && $value !== '' 
-                && $value !== '-' 
-                && trim((string)$value) !== '';
-        });
-
-        // Check if there are any truly missing values
-        $hasMissingValues = count($columnValues) > count($nonEmptyValues);
+        $hasMissingValues = array_reduce($columnValues, function ($carry, $value) {
+            return $carry || is_null($value) || trim((string) $value) === '' || $value === '-';
+        }, false);
     
         if ($hasMissingValues) {
-            // More robust numeric check
-            $isNumeric = !empty($nonEmptyValues) && array_reduce($nonEmptyValues, function ($carry, $value) {
-                return $carry && is_numeric($value);
+            $isNumeric = array_reduce($columnValues, function ($carry, $value) {
+                return $carry && (is_numeric($value) || is_null($value) || trim($value) === '' || $value === '-');
             }, true);
     
             $options[$header] = $isNumeric
-                ? ['mean', 'median', 'mode']
+                ? ['mean', 'median', 'mode', 'standard_deviation']
                 : ['mode', 'default_value'];
         }
     }
@@ -212,17 +149,64 @@ private function generateImputationOptions(array $data)
     return $options;
 }
 
-private function getImputedValue(array $data, $colIndex)
+    
+
+    private function cleanData(array $data)
 {
-    // Convert string column index to numeric if needed
-    if (is_string($colIndex)) {
-        $colIndex = array_search($colIndex, array_keys($data[0]));
-        if ($colIndex === false) {
-            // If column not found, return null or a default value
-            return null;
+    $cleanedData = [];
+    $uniqueRows = [];
+    $rowsRemovedDueToNulls = 0;
+    $rowsRemovedDueToDuplicates = 0;
+
+    foreach ($data as $rowIndex => $row) {
+        // Check if the row contains only null, blank, or "-" values
+        $isNullRow = true;
+        foreach ($row as $colIndex => &$value) { // Ensure $colIndex is the integer index
+            // Trim whitespaces and treat empty strings as null
+            $value = is_string($value) ? trim($value) : $value;
+
+            if (!is_null($value) && $value !== '' && $value !== '-') {
+                $isNullRow = false;
+            }
         }
+
+        if ($isNullRow) {
+            $rowsRemovedDueToNulls++;
+            continue;
+        }
+
+        // Serialize the row to check for duplicates
+        $serializedRow = serialize($row);
+        if (in_array($serializedRow, $uniqueRows)) {
+            $rowsRemovedDueToDuplicates++;
+            continue;
+        }
+
+        // Impute missing values
+        $row = array_map(function ($value, $colIndex) use ($data) {
+            // Pass integer index to `getImputedValue`
+            if (is_null($value) || $value === '' || $value === '-') {
+                return $this->getImputedValue($data, (int)$colIndex);
+            }
+            return $value;
+        }, $row, array_keys($row)); // Use array_keys to map numeric indices
+
+        $uniqueRows[] = $serializedRow;
+        $cleanedData[] = $row;
     }
 
+    $this->cleaningSummary = [
+        'total_rows' => count($data),
+        'cleaned_rows' => count($cleanedData),
+        'rows_removed_due_to_nulls' => $rowsRemovedDueToNulls,
+        'rows_removed_due_to_duplicates' => $rowsRemovedDueToDuplicates,
+    ];
+
+    return $cleanedData;
+}
+
+    private function getImputedValue(array $data, int $colIndex)
+{
     $columnValues = array_column($data, $colIndex);
     $nonNullValues = array_filter($columnValues, function ($value) {
         return !is_null($value) && trim((string) $value) !== '' && $value !== '-';
@@ -321,7 +305,7 @@ private function getImputedValue(array $data, $colIndex)
             'cleaningSummary' => $this->cleaningSummary,
             'missingValuesSummary' => $this->missingValuesSummary,
             'imputationOptions' => $this->imputationOptions,
-            'showImputation' => $this->showImputation && !empty($this->imputationOptions) && !$this->imputationComplete,
+            'showImputation' => $this->showImputation && !$this->imputationComplete,
             'imputationComplete' => $this->imputationComplete,
         ]);
     }

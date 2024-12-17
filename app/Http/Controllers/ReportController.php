@@ -118,7 +118,7 @@ class ReportController extends Controller
             ->setOption('enable-local-file-access', true);
 
         // Define file name and path
-        $fileName = 'VizOraReport_' . $validated['chart_title'] . '_' . now()->format('Y-m-d') . '.pdf';
+        $fileName = 'VizOraReport_' . now()->format('Y-m-d') . '.pdf';
         $filePath = storage_path('app/public/reports/' . $fileName);
 
         // Save PDF to storage
