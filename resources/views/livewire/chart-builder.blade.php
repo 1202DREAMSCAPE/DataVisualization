@@ -128,56 +128,145 @@
         </div>
     @endif
 
-                <div class="flex justify-end">
-                    <button 
-                        type="submit" 
-                        class="px-4 py-2 text-md bg-pink-500 text-white rounded-md hover:bg-red-600"
-                    >
-                        Generate Report
-                    </button>
-                </div>
-            </form>
+    <!-- Chart Preview -->
+    <div class="mt-4">
+        <div wire:loading>
+            <p class="text-center text-gray-500">Loading chart...</p>
         </div>
+
+        <!-- Always include the chart container so it can be found -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <div id="chartCanvas" class="w-full h-64"></div>
+        </div>
+
+        @if (!($chartType && !empty($chartData['series'])))
+            <div class="text-center text-gray-500">Please select a chart type and configure the data to view the chart.</div>
+        @endif
     </div>
 </div>
-
+<!-- Include ApexCharts Library -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        document.addEventListener('livewire:load', () => {
-            let chart = null;
+    document.addEventListener('livewire:init', () => {
+        let chart = null;
 
-            // Listen for the update-chart event
-            Livewire.on('update-chart', (chartData) => {
-                console.log(chartData);
+        // Throttle function to limit the rate of function execution
+        function throttle(func, delay) {
+            let lastCall = 0;
+            return function(...args) {
+                const now = Date.now();
+                if (now - lastCall >= delay) {
+                    lastCall = now;
+                    func.apply(this, args);
+                }
+            };
+        }
 
-                if (!chartData.series || chartData.series.length === 0) {
-                    console.error('Invalid chart data:', chartData);
-                    return;
+        // Function to render the chart
+        function renderChart(chartData) {
+            console.log('Chart Data Received:', chartData);
+
+            // Destroy the existing chart if it exists
+            if (chart) {
+                chart.destroy();
+                chart = null;
+            }
+
+            // Use setTimeout to ensure that the DOM has been updated
+            setTimeout(() => {
+                // Select the chart container using the fixed ID
+                let chartContainer = document.querySelector('#chartCanvas');
+                if (!chartContainer) {
+                    // If not found for any reason, create it dynamically
+                    const containerParent = document.createElement('div');
+                    containerParent.className = 'bg-gray-50 p-4 rounded-lg';
+                    chartContainer = document.createElement('div');
+                    chartContainer.id = 'chartCanvas';
+                    chartContainer.className = 'w-full h-64';
+                    containerParent.appendChild(chartContainer);
+                    document.body.appendChild(containerParent);
                 }
 
-                // Destroy the old chart if it exists
-                if (chart) chart.destroy();
-
-                // Select the chart container
-                const chartContainer = document.querySelector(`#chartCanvas-${chartData.id}`);
-                if (chartContainer) {
-                    // Initialize the chart
-                    chart = new ApexCharts(chartContainer, {
-                        chart: {
-                            type: chartData.chart.type,
-                            height: '100%',
-                            width: '100%',
+                // ApexCharts Configuration with Dynamic Chart Type
+                chart = new ApexCharts(chartContainer, {
+                    chart: {
+                        type: chartData.chartType || 'bar', // Dynamic chart type with fallback
+                        height: '100%',
+                        width: '100%',
+                        animations: {
+                            enabled: true,
+                            easing: 'easeinout',
+                            speed: 800,
                         },
-                        series: chartData.series,
-                        xaxis: chartData.xaxis || {},
-                        labels: chartData.labels || [],
-                        ...chartData.options,
-                    });
-                    chart.render();
-                } else {
-                    console.error('Chart container not found!');
-                }
-            });
+                        toolbar: {
+                            show: true
+                        },
+                        zoom: {
+                            enabled: true
+                        },
+                    },
+                    series: [
+                        {
+                            name: 'Sales',
+                            data: chartData[0].series[0].data, // Default hardcoded data
+                        },
+                    ],
+                    xaxis: {
+                        categories: chartData[0].xaxis.categories || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], // Default hardcoded categories
+                        title: {
+                            text: chartData.xAxisLabel || 'Days',
+                        },
+                    },
+                    yaxis: chartData.yAxis ? {
+                        title: {
+                            text: chartData.yAxisLabel || 'Values',
+                        },
+                    } : {},
+                    title: {
+                        text: chartData.title || 'Weekly Sales Data', // Default hardcoded title
+                        align: 'center',
+                        style: {
+                            fontSize: '20px',
+                            fontWeight: 'bold',
+                            color: '#263238'
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '50%',
+                            endingShape: 'rounded',
+                        },
+                    },
+                    dataLabels: {
+                        enabled: true,
+                    },
+                    responsive: [{
+                        breakpoint: 1000,
+                        options: {
+                            chart: {
+                                height: '100%',
+                                width: '100%',
+                            },
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }]
+                });
+
+                // Render the chart
+                chart.render();
+            }, 500); // 500ms delay to ensure DOM update
+        }
+
+        // Create a throttled version of the renderChart function
+        const throttledRenderChart = throttle(renderChart, 2000); // 2-second throttle
+
+        // Listen for the 'update-chart' event emitted from Livewire
+        Livewire.on('update-chart', (chartData) => {
+            throttledRenderChart(chartData);
         });
     });
 </script>
+    
