@@ -125,7 +125,14 @@
             type="submit" 
             class="px-4 py-2 text-md bg-pink-500 text-white rounded-md hover:bg-red-600"
         >
-            Generate Report
+            Download Report
+        </button>
+
+        <button 
+            type="submit" 
+            class="px-4 py-2 text-md bg-violet-500 text-white rounded-md hover:bg-green-600"
+        >
+            VizOra Insights
         </button>
     </div>
 </form>
