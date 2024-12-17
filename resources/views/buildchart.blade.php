@@ -31,10 +31,7 @@
         <livewire:authenticated_navbar />
         <!-- Main Content Area -->
         <main class="p-6">
-                <!-- Call Livewire FileUpload Component -->
-                <livewire:file-upload />
-                <!-- Call Livewire ChartBuilder Component -->
-
+                <livewire:chart-builder />
         </main>
         
     </div>
