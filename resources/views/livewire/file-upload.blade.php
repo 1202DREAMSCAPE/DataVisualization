@@ -14,10 +14,10 @@
         <div class="mt-2 text-center">
             <h3 class="text-gray-700 font-medium text-sm">How to Use:</h3>
             <ol class="text-xs text-gray-600 mt-1 space-y-1">
-                <li>1. Click on the upload area to upload.</li>
-                <li>2. Only CSV or XLSX files are supported.</li>
-                <li>3. Handle missing values if prompted.</li>
-                <li>4. Preview your cleaned data and start visualizing.</li>
+                <li>1. Click on the upload area to upload a CSV or XLSX file.</li>
+                <li>2. Handle missing and duplicate values if prompted.</li>
+                <li>3. Preview your cleaned data.</li>
+                <li>4. Proceed to visualize your data using charts.</li>
             </ol>
         </div>
 
@@ -48,37 +48,35 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($cleanedData as $row)
+                    @forelse ($cleanedData as $row)
                         <tr>
                             @foreach ($row as $cell)
-                                <td class="py-1 px-2 text-gray-600">{{ $cell ?? '-' }}</td>
+                                <td class="py-1 px-2 text-gray-600">
+                                    {{ $cell ?? '-' }}
+                                </td>
                             @endforeach
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="{{ count($headers) }}" class="py-2 px-4 text-center text-gray-500">
+                                No data available
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
 
         <!-- Cleaning Summary -->
         <h4 class="text-sm font-semibold mt-4">Cleaning Summary</h4>
-        <ul class="text-xs text-gray-600">
-            <li>Total Rows: {{ $cleaningSummary['total_rows'] ?? '0' }}</li>
-            <li>Returned Rows: {{ $cleaningSummary['cleaned_rows'] ?? '0' }}</li>
-            <li>Rows Removed (Nulls): {{ $cleaningSummary['rows_removed_due_to_nulls'] ?? '0' }}</li>
-            <li>Rows Removed (Duplicates): {{ $cleaningSummary['rows_removed_due_to_duplicates'] ?? '0' }}</li>
+        <ul class="text-xs text-gray-600 space-y-1">
+            <li><strong>Total Rows:</strong> {{ $cleaningSummary['total_rows'] ?? '0' }}</li>
+            <li><strong>Cleaned Rows:</strong> {{ $cleaningSummary['cleaned_rows'] ?? '0' }}</li>
+            <li><strong>Rows Removed (Nulls):</strong> {{ $cleaningSummary['rows_removed_due_to_nulls'] ?? '0' }}</li>
+            <li><strong>Rows Removed (Duplicates):</strong> {{ $cleaningSummary['rows_removed_due_to_duplicates'] ?? '0' }}</li>
         </ul>
 
-        <!-- Proceed to Build Charts -->
-        <div class="mt-4">
-            <a href="{{ route('build-charts') }}"
-                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md shadow text-sm font-semibold">
-                Proceed to Build Charts
-            </a>
-        </div>
-    @endif
-
-    <!-- Imputation Dropdown -->
-    @if ($showImputation && !empty($imputationOptions))
+        @if ($showImputation && !empty($imputationOptions))
         <div class="mb-4 mt-4">
             <label for="imputationMethod" class="block text-sm font-medium text-gray-700">Handle Missing Values:</label>
             <select id="imputationMethod" wire:model="imputationMethod" wire:change="applyImputation"
@@ -93,4 +91,16 @@
             </p>
         </div>
     @endif
+
+        <!-- Proceed to Build Charts -->
+        <div class="mt-4 flex justify-end">
+            <a href="{{ route('build-charts') }}"
+                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md shadow text-sm font-semibold">
+                Proceed to Visualizing
+            </a>
+        </div>
+    @endif
+
+    <!-- Imputation Dropdown -->
+   
 </div>
