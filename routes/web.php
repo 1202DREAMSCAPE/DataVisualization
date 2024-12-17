@@ -14,8 +14,16 @@ use App\Http\Controllers\CsvCleaningController;
 use App\Http\Controllers\DeleteController;
 
 
+Route::group(['middleware' => 'guest'], function () {
+    Route::view('/signup', 'signup')->name('signup');
+    // Dashboard
+    Route::view('/login', 'login')->name('login');
+    Route::post('/login', [LoginController::class, 'store'])->name('login.store');
+    Route::view('/', 'landing-page')->name('landing-page');
+    Route::post('/signup', [SignUpController::class, 'store'])->name('signup.store');
+
+});
 // Landing Page
-Route::view('/', 'landing-page')->name('landing-page');
 
 // Project Page
 Route::view('/project', 'project')->name('project');
@@ -23,10 +31,6 @@ Route::view('/project', 'project')->name('project');
 // Dashboard
 Route::view('/dashboard', 'dashboard')
     ->name('dashboard');
-
-// Dashboard
-Route::view('/signup', 'signup')
-    ->name('signup');
 
 // CSV Data Cleaning Routes
 Route::get('/clean-csv/upload', [CsvCleaningController::class, 'showUploadForm'])->name('clean-csv.upload.form');
@@ -45,12 +49,7 @@ Route::get('/csv-preview', CsvPreview::class)->name('csv-preview');
 Route::get('/csv-cleaned', CsvCleaned::class)->name('csv-cleaned');
 
 
-Route::post('/signup', [SignUpController::class, 'store'])->name('signup.store');
 
-// Dashboard
-Route::view('/login', 'login')
-    ->name('login');
-Route::post('/login', [LoginController::class, 'store'])->name('login.store');
 
 Route::get('/logout', function () {
     Auth::logout();
