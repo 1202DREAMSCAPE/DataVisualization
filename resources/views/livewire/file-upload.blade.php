@@ -70,25 +70,22 @@
 
     @endif
 
-
-    @if ($showImputation && !empty($missingValuesSummary))
-    <div class="mt-4 mb-4">
-        <label for="imputationMethod" class="block text-sm font-semibold text-gray-700">Handle Missing Values:</label>
-        <select id="imputationMethod" wire:model.defer="imputationMethod" wire:change="applyImputation"
-        class="mt-1 block w-full border-gray-300 rounded-md">
-   <option value="mean">Mean</option>
-    <option value="median">Median</option>
-    <option value="mode">Mode</option>
-    <option value="standard_deviation">Standard Deviation</option>
-</select>
-
-
+            <!-- Imputation Dropdown -->
+            @if ($showImputation && !empty($imputationOptions))
+    <div class="mb-4 mt-4">
+        <label for="imputationMethod" class="block text-sm font-medium text-gray-700">Handle Missing Values:</label>
+        <select id="imputationMethod" wire:model="imputationMethod" wire:change="applyImputation"
+            class="mt-1 block w-full border-gray-300 rounded-md">
+            <option value="mean">Mean</option>
+            <option value="median">Median</option>
+            <option value="mode">Mode</option>
+            <option value="standard_deviation">Standard Deviation</option>
+        </select>
         <p class="mt-1 text-xs text-gray-500">
-            Select a method to handle missing values. Data preview will update automatically.
+            Select a method to handle missing values.
         </p>
     </div>
 @endif
-
 
 
     <!-- Chart Selector -->
