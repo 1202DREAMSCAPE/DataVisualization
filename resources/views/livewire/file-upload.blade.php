@@ -37,24 +37,6 @@
         <!-- File Details -->
         <h2 class="text-sm font-medium mb-4">File: <span class="text-blue-500">{{ $filename }}</span></h2>
 
-        <!-- Imputation Dropdown -->
-        @if ($showImputation)
-    <div class="mb-4">
-        <label for="imputationMethod" class="block text-sm font-medium text-gray-700">Handle Missing Values:</label>
-        <select id="imputationMethod" wire:model="imputationMethod" wire:change="applyImputation"
-            class="mt-1 block w-full border-gray-300 rounded-md">
-            <option value="mean">Mean</option>
-            <option value="median">Median</option>
-            <option value="mode">Mode</option>
-            <option value="standard_deviation">Standard Deviation</option>
-        </select>
-        <p class="mt-1 text-xs text-gray-500">
-            Select a method to handle missing values dynamically. Data preview will update automatically.
-        </p>
-    </div>
-@endif
-
-
         <!-- Cleaned Data Preview -->
         <div class="overflow-x-auto max-h-48 border border-gray-300 rounded-md p-2 bg-gray-50">
             <table class="min-w-full text-xs text-left">
@@ -86,6 +68,24 @@
             <li>Rows Removed (Duplicates): {{ $cleaningSummary['rows_removed_due_to_duplicates'] ?? '0' }}</li>
         </ul>
     @endif
+
+            <!-- Imputation Dropdown -->
+            @if ($showImputation && !empty($imputationOptions))
+    <div class="mb-4 mt-4">
+        <label for="imputationMethod" class="block text-sm font-medium text-gray-700">Handle Missing Values:</label>
+        <select id="imputationMethod" wire:model="imputationMethod" wire:change="applyImputation"
+            class="mt-1 block w-full border-gray-300 rounded-md">
+            <option value="mean">Mean</option>
+            <option value="median">Median</option>
+            <option value="mode">Mode</option>
+            <option value="standard_deviation">Standard Deviation</option>
+        </select>
+        <p class="mt-1 text-xs text-gray-500">
+            Select a method to handle missing values.
+        </p>
+    </div>
+@endif
+
 
     <!-- Chart Selector -->
     @if ($isChartSelectorOpen)
