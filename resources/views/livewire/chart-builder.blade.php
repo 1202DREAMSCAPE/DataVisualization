@@ -125,9 +125,39 @@
         </button>
 
         <!-- Button -->
-        <button type="button" onclick="generateRandomText()" class="px-4 py-2 text-md bg-violet-500 text-white rounded-md hover:bg-green-600">
-            VizOra Insights
-        </button>
+       <!-- VizOra Insights Button -->
+<button 
+    type="button" 
+    onclick="generateRandomText()" 
+    id="vizOraInsightsButton"
+    class="px-4 py-2 text-md bg-violet-500 text-white rounded-md hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+    disabled
+    data-tooltip="Please provide a chart title to activate this feature."
+>
+    VizOra Insights
+</button>
+
+<style>
+    [data-tooltip] {
+        position: relative; /* Position the button relative for tooltip alignment */
+        cursor: pointer;    /* Show pointer for user interaction */
+    }
+    [data-tooltip]:hover::before {
+        content: attr(data-tooltip); /* Extract tooltip text from the data attribute */
+        position: absolute;
+        background-color: #333; /* Dark background for tooltip */
+        color: #fff;           /* White text for contrast */
+        padding: 4px 8px;      /* Add padding for better readability */
+        border-radius: 4px;    /* Rounded edges for a clean look */
+        font-size: 12px;       /* Adjust font size */
+        white-space: nowrap;   /* Prevent text from wrapping */
+        top: -30px;            /* Position above the button */
+        left: 50%;             /* Center horizontally */
+        transform: translateX(-50%); /* Center tooltip */
+        z-index: 10;           /* Ensure tooltip is above other elements */
+    }
+</style>
+
 
     </div>
 </form>
@@ -138,6 +168,19 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
+
+    const chartTitleInput = document.querySelector('input[name="chart_title"]');
+    const vizOraInsightsButton = document.getElementById('vizOraInsightsButton');
+
+    chartTitleInput.addEventListener('input', () => {
+        if (chartTitleInput.value.trim() !== '') {
+            vizOraInsightsButton.removeAttribute('disabled');
+        } else {
+            vizOraInsightsButton.setAttribute('disabled', true);
+        }
+    });
+
+
     document.querySelector('form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -485,7 +528,7 @@
             "Make the answer short and concise.",
             "Focus on key trends and base on the type of chart.",
             "Use simple language for better understanding.",
-            "No more than 95 words",
+            "No more than 150 words",
             "Make this very convincing and always show like an insight",
             "Always start with the chart name and the most important insight",
             "End with a very good conclusion",

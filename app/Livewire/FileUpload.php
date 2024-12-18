@@ -31,6 +31,8 @@ class FileUpload extends Component
 
     public function updatedFile()
     {
+        session()->forget(['cleaned_file', 'imputed_file']);
+
         $this->validate([
             'file' => 'required|mimes:csv,xlsx|max:10240',
         ]);
@@ -40,7 +42,6 @@ class FileUpload extends Component
         $this->loadAndCleanData($path);
 
         // dd($this->headers, $this->cleanedData);
-
 
         session([
             'cleaned_file' => [

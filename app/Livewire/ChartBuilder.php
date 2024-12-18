@@ -18,15 +18,31 @@ class ChartBuilder extends Component
 
     // Flag to prevent multiple dispatches
     protected $hasDispatched = false;
-
     public function mount($headers = [], $data = [], $chartType = null)
     {
-        $this->headers = $headers;
-        $this->data = $data;
+        $cleanedFile = session('cleaned_file');
+        logger('Session cleaned_file:', ['cleaned_file' => $cleanedFile]);
+    
+        if (is_array($cleanedFile)) {
+            $this->headers = $cleanedFile['headers'] ?? $headers;
+            $this->data = $cleanedFile['cleanedData'] ?? $data; // Ensure only the data rows are assigned
+        } else {
+            logger('cleaned_file is not an array or does not contain expected data structure.');
+            $this->headers = $headers;
+            $this->data = $data;
+        }
+    
         $this->chartType = $chartType ?: '';
-        $this->id = uniqid(); // Generate a unique ID for the chart
+        $this->id = uniqid();
+    
+        logger('Headers after mount:', $this->headers);
+        logger('Data after mount:', $this->data);
+    
         $this->prepareChartData();
     }
+    
+    
+    
 
     public function selectChartType($type)
     {
@@ -184,7 +200,7 @@ class ChartBuilder extends Component
     
         // Limit to 10 data points if necessary
         $filteredCategories = array_slice($filteredCategories, 0, 10);
-        $filteredData = array_slice($filteredData, 0, 10);
+        $filteredData = array_slice($filteredData, 0, 100);
     
         // Prepare chart data matching the desired structure
         $this->chartData = [
@@ -193,12 +209,12 @@ class ChartBuilder extends Component
             'series' => [
                 [
                     'name' => $this->seriesName ?? ' ', // Dynamic series name with default
-                    'data' => !empty($filteredData) ? $filteredData : [0], // Prepared or default data
+                    'data' => !empty($filteredData) ? $filteredData : [10, 20, 30, 40, 50, 60, 70], // Prepared or default data
                 ],
             ],
     
             'xaxis' => [
-                'categories' => !empty($filteredCategories) ? $filteredCategories : [''], // Prepared or default categories
+                'categories' => !empty($filteredCategories) ? $filteredCategories : ['', '', '', '', '', '', ''], // Prepared or default categories
                 'title' => [
                     'text' => $this->xAxisLabel ?? ' ', // Dynamic x-axis label with default
                 ],
@@ -308,7 +324,7 @@ class ChartBuilder extends Component
     {
         // Ensure selected categories and data are valid
         if (empty($this->selectedCategories) || empty($this->data)) {
-            dd('Selected categories or data are missing');
+            //dd('Selected categories or data are missing');
             return;
         }
     
@@ -370,7 +386,7 @@ class ChartBuilder extends Component
     
         // Ensure there are numeric values to calculate the highest value
         if (empty($globalMaxValues)) {
-            dd('No numeric data available to generate chart');
+           // dd('No numeric data available to generate chart');
             return;
         }
     

@@ -114,11 +114,6 @@ class ReportController extends Controller
                 <div class="container">
                     <div class="title">' . htmlspecialchars($validated['chart_title']) . '</div>
                     <div class="chart"><img src="' . $chartImagePath . '" alt="Chart"></div>
-                    <div class="metadata">
-                        <p><strong>Filename:</strong> ' . htmlspecialchars($validated['filename']) . '</p>
-                        <p><strong>X-Axis:</strong> ' . htmlspecialchars($validated['xAxis'] ?? 'Not specified') . '</p>
-                        <p><strong>Y-Axis:</strong> ' . htmlspecialchars($validated['yAxis'] ?? 'Not specified') . '</p>
-                    </div>
                     <div class="remarks">' . nl2br(htmlspecialchars($validated['chart_remarks'])) . '</div>
                 </div>
             </body>
