@@ -35,12 +35,8 @@
     <!-- Chart Description/Remarks Field -->
     <div class="mb-4">
         <h3 class="text-sm font-semibold text-gray-700">Description/Remarks</h3>
-        <textarea 
-            name="chart_remarks" 
-            class="w-full mt-2 p-2 border rounded-md h-32 overflow-y-auto resize-none" 
-            placeholder="Add a description or remarks" 
-            required
-        ></textarea>
+        <textarea id="chartRemarks" name="chart_remarks" class="w-full mt-2 p-2 border text-[13px] rounded-md h-32 overflow-y-auto resize-none" 
+        placeholder="Add a description or remarks" required></textarea>
     </div>
 
     <!-- Chart Type Field -->
@@ -70,7 +66,7 @@
             <!-- Axis/Column Selection -->
             @if ($chartType)
                 <div class="grid grid-cols-2 gap-4 mb-4">
-                    @if (in_array($chartType, ['radar', 'polarArea']))
+                    @if (in_array($chartType, ['radar']))
                         <!-- Radar/Polar Area Chart Categories -->
                         <div>
                             <label for="categories" class="block text-sm font-medium text-gray-700">Select Categories</label>
@@ -85,7 +81,7 @@
                         </div>
                     @endif
 
-                    @if (in_array($chartType, ['bar', 'line', 'pie']))
+                    @if (in_array($chartType, ['bar', 'line', 'pie','polarArea']))
                         <!-- Axis Selection for Bar, Line, and Pie Charts -->
                         <div>
                             <label for="xAxis" class="block text-sm font-medium text-gray-700">X-Axis</label>
@@ -128,12 +124,11 @@
             Download Report
         </button>
 
-        <button 
-            type="submit" 
-            class="px-4 py-2 text-md bg-violet-500 text-white rounded-md hover:bg-green-600"
-        >
+        <!-- Button -->
+        <button type="button" onclick="generateRandomText()" class="px-4 py-2 text-md bg-violet-500 text-white rounded-md hover:bg-green-600">
             VizOra Insights
         </button>
+
     </div>
 </form>
         </div>
@@ -200,8 +195,9 @@
 <!-- Include ApexCharts Library -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
+    let chart = null;
+    window.chartDataAi = null;
     document.addEventListener('livewire:init', () => {
-        let chart = null;
 
         // Throttle function to limit the rate of function execution
         function throttle(func, delay) {
@@ -453,8 +449,94 @@
 
         // Listen for the 'update-chart' event emitted from Livewire
         Livewire.on('update-chart', (chartData) => {
+            chartDataAi = chartData;
             throttledRenderChart(chartData);
         });
     });
 </script>
-    
+
+<script>
+    async function generateRandomText() {
+        if (!chartDataAi || chartDataAi.length === 0) {
+            document.getElementById("chartRemarks").value = "No chart data available.";
+            return;
+        }
+
+        // Extract the first object from the array
+        const chartInfo = chartDataAi[0];
+
+        // Function to format object fields into a string
+        const formatObject = (obj, indent = 0) =>
+            Object.entries(obj).map(([key, value]) => {
+                const padding = '  '.repeat(indent);
+                if (value && typeof value === 'object') {
+                    return Array.isArray(value)
+                        ? `${padding}${key}: [${value.join(', ')}]`
+                        : `${padding}${key}:\n${formatObject(value, indent + 1)}`;
+                }
+                return `${padding}${key}: ${value || 'N/A'}`;
+            }).join('\n');
+
+        // Format the chartInfo object
+        const formattedChartData = formatObject(chartInfo);
+
+        // Configuration for prompt rules
+        const promptRules = [
+            "Make the answer short and concise.",
+            "Focus on key trends and base on the type of chart.",
+            "Use simple language for better understanding.",
+            "No more than 95 words",
+            "Make this very convincing and always show like an insight",
+            "Always start with the chart name and the most important insight",
+            "End with a very good conclusion",
+            "Always make it only in one paragraph directly no other paragraphs",
+            "Always make it very clear and easy to understand",
+            "Ensure end is trim without space or new line space",
+        ];
+
+        // Join rules into a single instruction
+        const rulesText = promptRules.map((rule, index) => `${index + 1}. ${rule}`).join('\n');
+
+        // Prepare the prompt for the AI API
+        const prompt = `Analyze the following chart data and provide insights based on these rules:\n\n${rulesText}\n\nChart Data:\n\n${formattedChartData}`;
+
+        // Correct structure for Gemini AI API
+        const body = {
+            contents: [
+                {
+                    parts: [
+                        { text: prompt }
+                    ]
+                }
+            ]
+        };
+
+        const apiKey = "AIzaSyDfOJetSni2WRzl1UHv9S0f1zZPoJxJrqk";
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log(data);
+            // Get AI-generated insight from the response
+            const aiInsight = data?.candidates?.[0]?.content.parts[0].text || "No insight generated by AI.";
+
+            // Update the textarea with the AI-generated insight
+            document.getElementById("chartRemarks").value = aiInsight;
+
+        } catch (error) {
+            document.getElementById("chartRemarks").value = `Error: ${error.message}`;
+        }
+    }
+</script>

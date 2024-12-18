@@ -54,7 +54,7 @@ class ChartBuilder extends Component
         if (!$this->chartType) return;
 
         // Validate required fields based on chart type
-        if (in_array($this->chartType, ['bar', 'line']) && (!$this->xAxis || !$this->yAxis)) {
+        if (in_array($this->chartType, ['bar', 'line','polarArea']) && (!$this->xAxis || !$this->yAxis)) {
             return; // Wait until both X and Y axes are selected
         }
 
