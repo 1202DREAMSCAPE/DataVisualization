@@ -72,7 +72,7 @@
         <h4 class="text-sm font-semibold">Cleaning Summary</h4>
         <ul>
             <li><strong>Total Rows:</strong> {{ $cleaningSummary['total_rows'] ?? '0' }}</li>
-            <li><strong>Cleaned Rows:</strong> {{ $cleaningSummary['cleaned_rows'] ?? '0' }}</li>
+            <li><strong>Returned Rows:</strong> {{ $cleaningSummary['cleaned_rows'] ?? '0' }}</li>
             <li><strong>Rows Removed (Nulls):</strong> {{ $cleaningSummary['rows_removed_due_to_nulls'] ?? '0' }}</li>
             <li><strong>Rows Removed (Duplicates):</strong> {{ $cleaningSummary['rows_removed_due_to_duplicates'] ?? '0' }}</li>
         </ul>
